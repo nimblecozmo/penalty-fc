@@ -1,0 +1,3049 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<title>Bruno Fernandes — Penalty Shooter</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body {
+    width: 100%; height: 100%;
+    background: #000;
+    overflow: hidden;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  #container {
+    position: relative;
+    width: 100%; height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  canvas {
+    display: block;
+    max-width: 100%;
+    max-height: 100%;
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
+  }
+  #title-screen {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: linear-gradient(180deg, #0a1e3f 0%, #1a3a6f 50%, #0a1e3f 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+  }
+  .title-content {
+    text-align: center;
+    position: relative;
+  }
+  h1 {
+    font-size: 88px;
+    font-weight: 900;
+    color: #DA291C;
+    text-shadow:
+      0 0 20px rgba(218, 41, 28, 0.6),
+      0 4px 0 #8B0000,
+      0 6px 12px rgba(0, 0, 0, 0.5);
+    letter-spacing: 2px;
+    margin-bottom: 8px;
+  }
+  .subtitle {
+    font-size: 24px;
+    color: #FBE122;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+    margin-bottom: 48px;
+    font-weight: 600;
+  }
+  #play-btn {
+    background: linear-gradient(180deg, #DA291C 0%, #8B0000 100%);
+    color: white;
+    border: 4px solid #FBE122;
+    padding: 18px 64px;
+    font-size: 32px;
+    font-weight: 800;
+    letter-spacing: 4px;
+    cursor: pointer;
+    border-radius: 4px;
+    box-shadow: 0 6px 0 #4a0000, 0 8px 16px rgba(0, 0, 0, 0.4);
+    transition: transform 0.1s, box-shadow 0.1s;
+  }
+  #play-btn:hover {
+    transform: translateY(2px);
+    box-shadow: 0 4px 0 #4a0000, 0 6px 12px rgba(0, 0, 0, 0.4);
+  }
+  #play-btn:active {
+    transform: translateY(6px);
+    box-shadow: 0 0 0 #4a0000, 0 2px 4px rgba(0, 0, 0, 0.4);
+  }
+  #back-btn {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    background: rgba(0,0,0,0.6);
+    color: #fff;
+    border: 2px solid #FBE122;
+    padding: 12px 24px;
+    font-size: 16px;
+    font-weight: bold;
+    letter-spacing: 2px;
+    cursor: pointer;
+    z-index: 5;
+    display: none;
+  }
+  .instr {
+    position: absolute;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: white;
+    font-size: 18px;
+    font-weight: bold;
+    letter-spacing: 2px;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+    background: rgba(0,0,0,0.5);
+    padding: 8px 20px;
+    border: 2px solid #FBE122;
+    display: none;
+    z-index: 4;
+  }
+
+  /* ---------- Full-screen phone ---------- */
+  #phone-screen {
+    position: absolute;
+    inset: 0;
+    z-index: 60;
+    background: rgba(0, 0, 0, 0.94);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: monospace;
+    cursor: pointer;
+  }
+  #phone-screen.hidden { display: none; }
+  .phone-shell {
+    width: min(820px, 94%);
+    height: min(660px, 94%);
+    background: linear-gradient(165deg, #1d2029 0%, #0a0b10 100%);
+    border: 9px solid #2c303b;
+    border-radius: 38px;
+    box-shadow:
+      0 0 0 3px #4a5060,
+      0 30px 90px rgba(0, 0, 0, 0.85),
+      inset 0 0 70px rgba(255, 255, 255, 0.045);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 26px 30px 22px;
+    gap: 14px;
+    color: #e9ecf4;
+    overflow: hidden;
+  }
+  .phone-notch {
+    width: 120px; height: 9px;
+    background: #000;
+    border-radius: 0 0 12px 12px;
+    margin-top: -12px;
+  }
+  .phone-status {
+    width: 100%;
+    display: flex; justify-content: space-between;
+    font-size: 13px; color: #8f97a8;
+    letter-spacing: 1px;
+  }
+  .phone-title {
+    font-size: clamp(17px, 2.6vw, 26px);
+    font-weight: bold;
+    color: #FBE122;
+    letter-spacing: 3px;
+    text-align: center;
+    margin-top: 4px;
+  }
+  .phone-sub {
+    font-size: 13px;
+    color: #7f8798;
+    text-align: center;
+    margin-top: -6px;
+  }
+  .phone-opt {
+    width: 100%;
+    min-height: 150px;
+    border-radius: 18px;
+    border: 3px solid #39404f;
+    background: #171a22;
+    color: #e9ecf4;
+    font-family: monospace;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 18px;
+    text-align: center;
+    transition: transform .12s ease, border-color .12s ease, background .12s ease;
+  }
+  .phone-opt:hover { transform: scale(1.015); background: #1e222c; }
+  .phone-opt:active { transform: scale(0.985); }
+  .phone-opt .big {
+    font-size: clamp(18px, 3vw, 30px);
+    font-weight: bold;
+    letter-spacing: 1px;
+    line-height: 1.25;
+  }
+  .phone-opt .small {
+    font-size: clamp(12px, 1.7vw, 15px);
+    color: #929aab;
+    line-height: 1.4;
+  }
+  .phone-opt.call  { border-color: #2f8f4e; }
+  .phone-opt.call .big  { color: #46d977; }
+  .phone-opt.rifle { border-color: #a83232; }
+  .phone-opt.rifle .big { color: #ff6b6b; }
+  .phone-close {
+    margin-top: auto;
+    background: none;
+    border: 2px solid #3a4150;
+    color: #9aa2b3;
+    font-family: monospace;
+    font-size: 14px;
+    letter-spacing: 2px;
+    padding: 10px 26px;
+    border-radius: 12px;
+    cursor: pointer;
+  }
+  .phone-close:hover { border-color: #6d7688; color: #d7dce6; }
+</style>
+</head>
+<body>
+  <div id="container">
+    <canvas id="game" width="1280" height="720"></canvas>
+    <div id="title-screen">
+      <div class="title-content">
+        <h1>BRUNO 8</h1>
+        <p class="subtitle">PENALTY SHOOTER</p>
+        <p style="position:absolute;bottom:8px;right:12px;font-size:11px;color:#FBE122;opacity:0.6;font-family:monospace;">v1.3</p>
+        <button id="play-btn">PLAY</button>
+      </div>
+    </div>
+    <button id="back-btn">← BACK</button>
+    <div id="instr-vertical"   class="instr">CLICK TO TAKE THE PENALTY</div>
+    <div id="instr-result"     class="instr">CLICK TO SHOOT AGAIN</div>
+
+    <!-- Full-screen phone, opens when you tap the phone on the pitch -->
+    <div id="phone-screen" class="hidden">
+      <div class="phone-shell">
+        <div class="phone-notch"></div>
+        <div class="phone-status">
+          <span>3:47</span><span>&#9646;&#9647;&#9648;&#9649; BRUNO 8</span><span>&#128267; 87%</span>
+        </div>
+        <div class="phone-title">&#128222; INCOMING</div>
+        <div class="phone-sub">What do you want to do about the keeper?</div>
+        <button id="opt-call" class="phone-opt call">
+          <span class="big">&#128222; CALL 000</span>
+          <span class="small">An ambulance comes and collects the keeper.<br>He will keep dripping blood all the way out.</span>
+        </button>
+        <button id="opt-rifle" class="phone-opt rifle">
+          <span class="big">&#128293; KEEP SHOOTING AT HIM</span>
+          <span class="small">But this time get an AR15 and beam him.</span>
+        </button>
+        <button id="phone-close" class="phone-close">&#10005; CLOSE</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+'use strict';
+
+// ============================================================
+//   BRUNO 8 — PENALTY SHOOTER
+//   Front-view penalty shootout. Bouncing horizontal meter
+//   determines direction. Click when indicator is in the goal
+//   to score (subject to keeper). Click outside = miss.
+// ============================================================
+
+const canvas = document.getElementById('game');
+const ctx = canvas.getContext('2d');
+const W = canvas.width;   // 1280
+const H = canvas.height;  // 720
+
+// World constants
+const GOAL_LEFT   = 380;     // left post x
+const GOAL_RIGHT  = 900;     // right post x
+const GOAL_TOP    = 180;     // crossbar y
+const GOAL_BOTTOM = 360;     // ground level (goal area bottom)
+const GOAL_WIDTH  = GOAL_RIGHT - GOAL_LEFT;   // 520
+const GOAL_HEIGHT = GOAL_BOTTOM - GOAL_TOP;   // 180
+
+// Extension lines — ~1m past the posts (visually, ~80px on each side and top)
+const EXT_LEFT   = GOAL_LEFT - 80;    // ~80px past left post (≈1m)
+const EXT_RIGHT  = GOAL_RIGHT + 80;   // ~80px past right post
+const EXT_TOP    = GOAL_TOP - 60;     // ~60px past crossbar
+
+// Ball start position (Bruno's foot)
+const BALL_START_X = W / 2;
+const BALL_START_Y = 620;
+
+// Goalkeeper center
+const KEEPER_X = (GOAL_LEFT + GOAL_RIGHT) / 2;
+const KEEPER_Y = (GOAL_TOP + GOAL_BOTTOM) / 2 - 10;
+
+// Shooting meter
+let shotDir = 0;          // -1..+1 (left to right across goal+extensions)
+let shotDirTarget = 1;
+const SHOT_SPEED = 0.012; // per frame at 60fps
+const SHOT_MIN = -1.05;   // leftmost extension
+const SHOT_MAX =  1.05;   // rightmost extension
+
+// Ball
+let ball = null;
+const BALL_R = 14;
+
+// Keeper
+let keeper = null;
+const KEEPER_DIVE_SPEED = 18;  // px/frame during dive
+const KEEPER_REACH = 110;      // how far the keeper can stretch
+
+// Particles
+let particles = [];
+
+// State
+let state = 'title';     // 'title' | 'aim' | 'shooting' | 'result'
+let score = 0, attempts = 0;
+let streak = 0, bestStreak = 0;
+
+// ============================================================
+//   8-CLICK CHAOS MODE
+//   Click the "8" on Bruno's shirt three times and the keeper
+//   bursts into tears and legges it off the pitch, while Bruno
+//   starts knocking in 100 goals per millisecond.
+// ============================================================
+let shirtClicks = 0;       // clicks on the 8 (0..3)
+let chaosMode = false;     // chaos unlocked
+let chaosStart = 0;        // performance.now() at the moment of unlock
+let chaosBaseScore = 0;
+let chaosBaseAttempts = 0;
+let chaosBalls = [];       // balls in flight during chaos
+let lastChaosShot = 0;     // timestamp of the last visual shot
+let fleeTears = [];        // tears shed by the keeper
+let clickPings = [];       // click feedback rings on the 8
+let keeperFlee = null;     // { dir, t, startX }
+let keeperHome = false;    // keeper has been called back into the goal
+let scoreAtReturn = 0;     // score frozen at the moment he was called back
+let attemptsAtReturn = 0;
+let savePops = [];          // "SAVED!" popups once the keeper is back
+let bloodPool = 0;          // radius of the pool of red under the keeper
+let keeperDown = false;     // keeper has dropped to the ground
+let targetMode = false;     // every Bruno shot is aimed at the keeper
+let keeperReturnMode = 'normal';   // which click brought him back
+let splashes = [];          // impact splashes
+let hitFlash = 0;           // impact flash timer
+
+// ---- The phone next to Bruno ----
+const PHONE_X = 762;        // where the phone lies on the grass
+const PHONE_Y = 604;
+let phoneOpen = false;      // full-screen phone overlay showing
+let ambulance = null;       // { x, y, phase, t, stopX }
+let stretcher = null;       // the trolley the keeper is loaded onto
+let bloodTrails = [];       // drips left behind by the ambulance
+let rifle = { on: false, t: 0, flash: 0, shots: 0, recoil: 0 };
+let tracers = [];           // rifle tracer lines
+let poolX = KEEPER_X;       // where the pool formed (keeper may move later)
+let poolY = 340;
+
+// ---- The AR15 endgame ----
+const RIFLE_POOL_MAX = 390;   // 3x the old pool size
+const RIFLE_POOL_FRAMES = 600; // 10 seconds at 60fps to reach the max
+let riflePoolStart = 0;
+let riflePoolRate = 0;
+let hearse = null;             // the funeral procession
+let fastMode = false;          // Bruno keeps scoring, 100x faster
+let fastStart = 0;
+let fastBaseScore = 0;
+let fastBaseAttempts = 0;
+let fastWait = 0;
+let fastStreaks = [];        // rapid-fire shot streaks
+let keeperGone = false;        // he is in the hearse
+let ohWellTimer = 0;           // "oh well" bubble
+let phoneUnlocked = false;     // the phone only appears after the emoji click
+const FAST_GOALS_PER_MS = 10000;   // 100x the base 100 per ms (10x slower than before)
+
+// ---- Tiny procedural sound kit (created on the first user gesture) ----
+let audioCtx = null;
+function ensureAudio() {
+  try {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+  } catch (e) { audioCtx = null; }
+  return audioCtx;
+}
+function tone(freq, dur, type = 'square', vol = 0.06, slideTo = null) {
+  const ac = ensureAudio();
+  if (!ac) return;
+  try {
+    const o = ac.createOscillator(), g = ac.createGain();
+    const t = ac.currentTime;
+    o.type = type;
+    o.frequency.setValueAtTime(freq, t);
+    if (slideTo) o.frequency.exponentialRampToValueAtTime(Math.max(30, slideTo), t + dur);
+    g.gain.setValueAtTime(vol, t);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.connect(g); g.connect(ac.destination);
+    o.start(t); o.stop(t + dur);
+  } catch (e) { /* audio is a bonus, never fatal */ }
+}
+function sobSound() {
+  const ac = ensureAudio();
+  if (!ac) return;
+  try {
+    const t = ac.currentTime;
+    const o = ac.createOscillator(), g = ac.createGain();
+    const lfo = ac.createOscillator(), lg = ac.createGain();
+    o.type = 'sawtooth';
+    o.frequency.setValueAtTime(340, t);
+    o.frequency.linearRampToValueAtTime(170, t + 1.0);
+    lfo.frequency.value = 7.5; lg.gain.value = 45;
+    lfo.connect(lg); lg.connect(o.frequency);
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.linearRampToValueAtTime(0.07, t + 0.15);
+    g.gain.setValueAtTime(0.07, t + 0.7);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 1.1);
+    o.connect(g); g.connect(ac.destination);
+    lfo.start(t); lfo.stop(t + 1.1);
+    o.start(t); o.stop(t + 1.1);
+  } catch (e) { /* audio is a bonus, never fatal */ }
+}
+
+// ============================================================
+//   Utility
+// ============================================================
+function lerp(a, b, t) { return a + (b - a) * t; }
+function rand(min, max) { return min + Math.random() * (max - min); }
+function randInt(min, max) { return Math.floor(rand(min, max + 1)); }
+function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
+
+// Convert shotDir (-1..+1) to world x position
+function shotDirToX(dir) {
+  // -1 = left extension, 0 = center, +1 = right extension
+  return W / 2 + dir * (GOAL_WIDTH / 2 + 80);
+}
+
+// Convert world x to shotDir
+function xToShotDir(x) {
+  return (x - W / 2) / (GOAL_WIDTH / 2 + 80);
+}
+
+// Map x position to one of 9 zones (for keeper dive direction)
+function dirToZone(dir) {
+  if (dir < -0.66) return 'far-left';
+  if (dir < -0.33) return 'left';
+  if (dir <  0.0)  return 'mid-left';
+  if (dir <  0.33) return 'mid-right';
+  if (dir <  0.66) return 'right';
+  return 'far-right';
+}
+
+// ============================================================
+//   Particles
+// ============================================================
+function spawnConfetti(x, y) {
+  for (let i = 0; i < 50; i++) {
+    particles.push({
+      x, y,
+      vx: rand(-6, 6),
+      vy: rand(-10, -3),
+      g: 0.4,
+      life: 1.0,
+      color: ['#FBE122', '#DA291C', '#FFFFFF', '#00A651'][randInt(0, 3)],
+      size: rand(3, 6)
+    });
+  }
+}
+
+function updateParticles() {
+  for (let i = particles.length - 1; i >= 0; i--) {
+    const p = particles[i];
+    p.x += p.vx;
+    p.y += p.vy;
+    p.vy += p.g;
+    p.life -= 0.015;
+    if (p.life <= 0) particles.splice(i, 1);
+  }
+}
+
+function drawParticles() {
+  for (const p of particles) {
+    ctx.globalAlpha = p.life;
+    ctx.fillStyle = p.color;
+    ctx.fillRect(p.x - p.size/2, p.y - p.size/2, p.size, p.size);
+  }
+  ctx.globalAlpha = 1;
+}
+
+// ============================================================
+//   Drawing — Stadium
+// ============================================================
+function drawStadium() {
+  // Sky / upper background (stands)
+  const skyGrad = ctx.createLinearGradient(0, 0, 0, H);
+  skyGrad.addColorStop(0, '#1a3a6f');
+  skyGrad.addColorStop(0.5, '#2a5a8f');
+  skyGrad.addColorStop(0.7, '#4a7aaf');
+  skyGrad.addColorStop(0.85, '#6a9acf');
+  skyGrad.addColorStop(1, '#3a6a8f');
+  ctx.fillStyle = skyGrad;
+  ctx.fillRect(0, 0, W, H);
+
+  // === STANDS WITH CROWD (chef-curry style — not distracting) ===
+  // Main stand: dark mass going from top of screen down to the start of the pitch
+  const standTop = 40, standBot = GOAL_BOTTOM;  // extends all the way down to the pitch
+  ctx.fillStyle = '#0a0a14';
+  ctx.fillRect(0, standTop, W, standBot - standTop);
+  // Crowd heads (dark, varied positions) — multiple rows to fill the larger stand
+  for (let i = 0; i < 700; i++) {
+    const x = (i * 9 + 5) % W;
+    const row = i % 9;
+    const y = standTop + row * 36 + 6;
+    const r = 2.5 + (i % 3);
+    // Mostly dark colors (silhouettes)
+    const colors = ['#1a1a2a', '#2a1a1a', '#1a2a1a', '#2a2a1a', '#1a1a1a'];
+    ctx.fillStyle = colors[i % colors.length];
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  // Bright shirt fans (Man Utd red and yellow accents)
+  for (let i = 0; i < 60; i++) {
+    const x = (i * 37 + 13) % W;
+    const row = i % 8;
+    const y = standTop + row * 38 + 14;
+    // Red (Man Utd) or yellow accent shirts
+    ctx.fillStyle = (i % 3 === 0)
+      ? 'rgba(218, 41, 28, 0.65)'   // red
+      : (i % 3 === 1)
+        ? 'rgba(251, 225, 34, 0.55)'  // yellow
+        : 'rgba(255, 255, 255, 0.4)'; // white
+    ctx.beginPath();
+    ctx.arc(x, y, 4, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  // Stand railing (subtle horizontal line at the bottom of the stand)
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(0, standBot);
+  ctx.lineTo(W, standBot);
+  ctx.stroke();
+
+  // Pitch (foreground)
+  const pitchGrad = ctx.createLinearGradient(0, GOAL_BOTTOM, 0, H);
+  pitchGrad.addColorStop(0, '#3a8a3a');
+  pitchGrad.addColorStop(0.5, '#2a6a2a');
+  pitchGrad.addColorStop(1, '#1a4a1a');
+  ctx.fillStyle = pitchGrad;
+  ctx.fillRect(0, GOAL_BOTTOM, W, H - GOAL_BOTTOM);
+
+  // Pitch stripes (mowing pattern)
+  for (let i = 0; i < 8; i++) {
+    ctx.fillStyle = i % 2 === 0 ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.05)';
+    ctx.fillRect(i * (W/8), GOAL_BOTTOM, W/8, H - GOAL_BOTTOM);
+  }
+
+  // Penalty box (white lines on pitch)
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.85)';
+  ctx.lineWidth = 3;
+  // Six-yard box
+  const sixYardTop = GOAL_BOTTOM;
+  const sixYardW = 220;
+  const sixYardH = 80;
+  ctx.strokeRect(W/2 - sixYardW/2, sixYardTop, sixYardW, sixYardH);
+  // Penalty box
+  const penBoxW = 540;
+  const penBoxH = 180;
+  ctx.strokeRect(W/2 - penBoxW/2, sixYardTop, penBoxW, penBoxH);
+  // Penalty spot
+  ctx.fillStyle = 'white';
+  ctx.beginPath();
+  ctx.arc(W/2, sixYardTop + 120, 3, 0, Math.PI * 2);
+  ctx.fill();
+  // Penalty arc
+  ctx.beginPath();
+  ctx.arc(W/2, sixYardTop + 120, 80, -Math.PI/2 - 0.4, -Math.PI/2 + 0.4);
+  ctx.stroke();
+
+  // Goal area shadow (ground under goal)
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.25)';
+  ctx.fillRect(GOAL_LEFT - 10, GOAL_BOTTOM, GOAL_WIDTH + 20, 8);
+}
+
+// ============================================================
+//   Drawing — Goal Frame & Net
+// ============================================================
+function drawGoal() {
+  // Net background (the netting)
+  ctx.save();
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.18)';
+  ctx.fillRect(GOAL_LEFT, GOAL_TOP, GOAL_WIDTH, GOAL_HEIGHT);
+  // Net grid pattern
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.35)';
+  ctx.lineWidth = 1;
+  // Vertical strings
+  for (let x = GOAL_LEFT; x <= GOAL_RIGHT; x += 16) {
+    ctx.beginPath();
+    ctx.moveTo(x, GOAL_TOP);
+    ctx.lineTo(x, GOAL_BOTTOM);
+    ctx.stroke();
+  }
+  // Horizontal strings
+  for (let y = GOAL_TOP; y <= GOAL_BOTTOM; y += 16) {
+    ctx.beginPath();
+    ctx.moveTo(GOAL_LEFT, y);
+    ctx.lineTo(GOAL_RIGHT, y);
+    ctx.stroke();
+  }
+  ctx.restore();
+
+  // Goal posts (white, thick)
+  ctx.strokeStyle = '#FFFFFF';
+  ctx.lineWidth = 8;
+  ctx.lineCap = 'square';
+  // Left post
+  ctx.beginPath();
+  ctx.moveTo(GOAL_LEFT, GOAL_BOTTOM);
+  ctx.lineTo(GOAL_LEFT, GOAL_TOP);
+  ctx.stroke();
+  // Right post
+  ctx.beginPath();
+  ctx.moveTo(GOAL_RIGHT, GOAL_BOTTOM);
+  ctx.lineTo(GOAL_RIGHT, GOAL_TOP);
+  ctx.stroke();
+  // Crossbar
+  ctx.beginPath();
+  ctx.moveTo(GOAL_LEFT, GOAL_TOP);
+  ctx.lineTo(GOAL_RIGHT, GOAL_TOP);
+  ctx.stroke();
+  // Post highlights
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.6)';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(GOAL_LEFT - 2, GOAL_BOTTOM);
+  ctx.lineTo(GOAL_LEFT - 2, GOAL_TOP);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(GOAL_RIGHT + 2, GOAL_BOTTOM);
+  ctx.lineTo(GOAL_RIGHT + 2, GOAL_TOP);
+  ctx.stroke();
+
+  // Highlight the goal opening with a subtle glow
+  ctx.save();
+  ctx.shadowColor = 'rgba(255, 255, 100, 0.5)';
+  ctx.shadowBlur = 30;
+  ctx.strokeStyle = 'rgba(255, 255, 200, 0.4)';
+  ctx.lineWidth = 2;
+  ctx.strokeRect(GOAL_LEFT, GOAL_TOP, GOAL_WIDTH, GOAL_HEIGHT);
+  ctx.restore();
+}
+
+// ============================================================
+//   Drawing — Goalkeeper
+// ============================================================
+function drawKeeper() {
+  if (!keeper) return;
+  const k = keeper;
+  if (k.pose === 'sitting') { drawSittingKeeper(k); return; }
+  if (k.pose === 'down') { if (k.stolen) return; drawFallenKeeper(k); return; }
+  const x = k.x, y = k.y;
+  const diveAngle = k.diveAngle; // -1..+1 (left to right)
+  const diveProgress = k.diveProgress; // 0..1
+  const isDiving = k.isDiving;
+
+  ctx.save();
+  ctx.translate(x, y);
+
+  // Diving motion: rotate the entire keeper based on dive direction
+  if (isDiving) {
+    ctx.rotate(diveAngle * 0.6);
+    // Also offset vertically to suggest a dive
+    ctx.translate(0, diveProgress * 20);
+  }
+
+  // Shadow
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
+  ctx.beginPath();
+  ctx.ellipse(0, 75, 40, 6, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // === LEGS (slim, no separate boots needed) ===
+  ctx.fillStyle = '#00A651';
+  // Running legs when fleeing — they pump as he sprints for the exit
+  const runSwing = k.isFleeing ? Math.sin(keeperFlee ? keeperFlee.t * 0.45 : 0) : 0;
+  if (k.isFleeing) {
+    ctx.save();
+    ctx.translate(-8, 5);  ctx.rotate(runSwing * 0.8);  ctx.translate(8, -5);
+    ctx.fillRect(-12, 5, 8, 55);
+    ctx.fillStyle = '#FFFFFF';
+    ctx.fillRect(-12, 50, 8, 15);
+    ctx.fillStyle = '#000';
+    ctx.fillRect(-16, 62, 14, 8);
+    ctx.restore();
+    ctx.save();
+    ctx.translate(8, 5);   ctx.rotate(-runSwing * 0.8); ctx.translate(-8, -5);
+    ctx.fillStyle = '#00A651';
+    ctx.fillRect(4, 5, 8, 55);
+    ctx.fillStyle = '#FFFFFF';
+    ctx.fillRect(4, 50, 8, 15);
+    ctx.fillStyle = '#000';
+    ctx.fillRect(2, 62, 14, 8);
+    ctx.restore();
+  } else {
+    // Left leg
+    ctx.fillRect(-12, 5, 8, 55);
+    // Right leg
+    ctx.fillRect(4, 5, 8, 55);
+    // Socks
+    ctx.fillStyle = '#FFFFFF';
+    ctx.fillRect(-12, 50, 8, 15);
+    ctx.fillRect(4, 50, 8, 15);
+    // Boots
+    ctx.fillStyle = '#000';
+    ctx.fillRect(-16, 62, 14, 8);
+    ctx.fillRect(2, 62, 14, 8);
+  }
+
+  // === BODY (slim torso) ===
+  const bodyGrad = ctx.createLinearGradient(-22, -75, 22, 0);
+  bodyGrad.addColorStop(0, '#00A651');
+  bodyGrad.addColorStop(0.5, '#00C040');
+  bodyGrad.addColorStop(1, '#008035');
+  ctx.fillStyle = bodyGrad;
+  ctx.beginPath();
+  ctx.moveTo(-22, 5);
+  ctx.lineTo(-25, -70);
+  ctx.lineTo(25, -70);
+  ctx.lineTo(22, 5);
+  ctx.closePath();
+  ctx.fill();
+  // White chest stripe
+  ctx.fillStyle = '#FFFFFF';
+  ctx.fillRect(-22, -45, 44, 6);
+  // Number
+  ctx.fillStyle = '#FFFFFF';
+  ctx.font = 'bold 24px monospace';
+  ctx.textAlign = 'center';
+  ctx.fillText('1', 0, -25);
+
+  // === ARMS (slim, with proper dive extension) ===
+  ctx.strokeStyle = '#00A651';
+  ctx.lineWidth = 9;
+  ctx.lineCap = 'round';
+
+  // Left arm
+  ctx.beginPath();
+  ctx.moveTo(-22, -60);
+  if (isDiving && diveAngle < 0) {
+    // Diving left — left arm extended fully
+    ctx.lineTo(-22 - 45, -60 - 5);
+  } else if (isDiving && diveAngle > 0) {
+    // Diving right — left arm tucked in
+    ctx.lineTo(-30, -30);
+  } else {
+    ctx.lineTo(-32, -40);
+  }
+  ctx.stroke();
+
+  // Right arm
+  ctx.beginPath();
+  ctx.moveTo(22, -60);
+  if (isDiving && diveAngle > 0) {
+    // Diving right — right arm extended fully
+    ctx.lineTo(22 + 45, -60 - 5);
+  } else if (isDiving && diveAngle < 0) {
+    // Diving left — right arm tucked in
+    ctx.lineTo(30, -30);
+  } else {
+    ctx.lineTo(32, -40);
+  }
+  ctx.stroke();
+
+  // === GLOVES (yellow, at end of extended arm) ===
+  ctx.fillStyle = '#FBE122';
+  ctx.strokeStyle = '#000';
+  ctx.lineWidth = 1;
+  // Left glove
+  ctx.beginPath();
+  const lGx = isDiving && diveAngle < 0 ? -22 - 45 : (isDiving && diveAngle > 0 ? -30 : -32);
+  const lGy = isDiving && diveAngle < 0 ? -60 - 5 : (isDiving && diveAngle > 0 ? -30 : -40);
+  ctx.arc(lGx, lGy, 6, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.stroke();
+  // Right glove
+  ctx.beginPath();
+  const rGx = isDiving && diveAngle > 0 ? 22 + 45 : (isDiving && diveAngle < 0 ? 30 : 32);
+  const rGy = isDiving && diveAngle > 0 ? -60 - 5 : (isDiving && diveAngle < 0 ? -30 : -40);
+  ctx.arc(rGx, rGy, 6, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.stroke();
+
+  // === HEAD (smaller, in proportion to slim body) ===
+  ctx.fillStyle = '#d4a070';
+  ctx.beginPath();
+  ctx.arc(0, -88, 16, 0, Math.PI * 2);
+  ctx.fill();
+  // Hair
+  ctx.fillStyle = '#2a1a0a';
+  ctx.beginPath();
+  ctx.arc(0, -95, 14, Math.PI, Math.PI * 2);
+  ctx.fill();
+  // Cap
+  ctx.fillStyle = '#00A651';
+  ctx.beginPath();
+  ctx.arc(0, -93, 16, Math.PI, Math.PI * 2);
+  ctx.fill();
+  // Cap brim
+  ctx.fillStyle = '#008035';
+  ctx.fillRect(-18, -93, 36, 3);
+
+  // === CRYING: sad face, streaming tears, arms up in despair ===
+  if (k.isCrying) {
+    // Eyes (squinting with tears)
+    ctx.fillStyle = '#fff';
+    ctx.beginPath();
+    ctx.ellipse(-6, -86, 4.5, 3.4, 0, 0, Math.PI * 2);
+    ctx.ellipse(6, -86, 4.5, 3.4, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#222';
+    ctx.beginPath();
+    ctx.arc(-6, -86, 2, 0, Math.PI * 2);
+    ctx.arc(6, -86, 2, 0, Math.PI * 2);
+    ctx.fill();
+    // Worried eyebrows (inner ends raised)
+    ctx.strokeStyle = '#2a1a0a';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(-10, -91); ctx.lineTo(-3, -94);
+    ctx.moveTo(10, -91);  ctx.lineTo(3, -94);
+    ctx.stroke();
+    // Wobbly sob mouth
+    ctx.strokeStyle = '#7a3b2a';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(-7, -76);
+    ctx.quadraticCurveTo(-3.5, -72, 0, -76);
+    ctx.quadraticCurveTo(3.5, -80, 7, -76);
+    ctx.stroke();
+    // Tears streaming from both eyes
+    const t = performance.now() / 120;
+    for (let i = 0; i < 3; i++) {
+      const off = ((t + i * 0.7) % 1.6);
+      const ty = -84 + off * 26;
+      const tx = -6 + Math.sin(t * 2 + i) * 1.2;
+      const rx = 6 + Math.sin(t * 2 + i + 1.3) * 1.2;
+      const size = 3 + Math.sin(off * 3) * 0.8;
+      ctx.fillStyle = `rgba(120, 200, 255, ${Math.max(0, 0.9 - off * 0.45)})`;
+      ctx.beginPath();
+      ctx.ellipse(tx, ty, size * 0.7, size, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.ellipse(rx, ty, size * 0.7, size, 0, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    // Despairing arms raised above the head
+    ctx.strokeStyle = '#00A651';
+    ctx.lineWidth = 9;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(-22, -60); ctx.lineTo(-34, -96);
+    ctx.moveTo(22, -60);  ctx.lineTo(34, -96);
+    ctx.stroke();
+    // Little wail marks
+    ctx.strokeStyle = 'rgba(255,255,255,0.85)';
+    ctx.lineWidth = 3;
+    const wob = Math.sin(performance.now() / 90) * 3;
+    ctx.beginPath();
+    ctx.arc(-30, -108 + wob, 6, Math.PI * 0.9, Math.PI * 1.6);
+    ctx.arc(30, -108 - wob, 6, Math.PI * 1.4, Math.PI * 2.1);
+    ctx.stroke();
+  }
+
+  ctx.restore();
+}
+
+// ============================================================
+//   Drawing — Keeper down on the ground
+// ============================================================
+function drawFallenKeeper(k) {
+  // He stays down — just a small shudder where he lies
+  const x = k.x + (k.shake ? Math.sin(k.shake * 2.4) * 3.5 : 0), y = k.y;
+  ctx.save();
+  ctx.translate(x, y);
+
+  // Torso lying on its side (head to the left)
+  ctx.fillStyle = '#00A651';
+  ctx.beginPath();
+  ctx.ellipse(0, -15, 46, 17, 0, 0, Math.PI * 2);
+  ctx.fill();
+  // Legs trailing out
+  ctx.fillStyle = '#008035';
+  ctx.beginPath();
+  ctx.ellipse(42, -11, 24, 12, -0.12, 0, Math.PI * 2);
+  ctx.fill();
+  // Boot
+  ctx.fillStyle = '#000';
+  ctx.fillRect(54, -24, 17, 12);
+  // White chest stripe
+  ctx.fillStyle = '#FFFFFF';
+  ctx.fillRect(-32, -26, 60, 5);
+  // Head lolling to the side
+  ctx.fillStyle = '#d4a070';
+  ctx.beginPath();
+  ctx.arc(-48, -22, 15, 0, Math.PI * 2);
+  ctx.fill();
+  // Cap fallen off to one side
+  ctx.fillStyle = '#00A651';
+  ctx.beginPath();
+  ctx.arc(-52, -27, 15, Math.PI, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = '#008035';
+  ctx.fillRect(-68, -27, 32, 3);
+  // Arm flung out
+  ctx.strokeStyle = '#00A651';
+  ctx.lineWidth = 9;
+  ctx.lineCap = 'round';
+  ctx.beginPath();
+  ctx.moveTo(-28, -26); ctx.lineTo(-10, -44);
+  ctx.stroke();
+
+  // Impact flash — a hot pink-red flash, not a white blob
+  if (k.whiteFlash > 0) {
+    ctx.fillStyle = 'rgba(255, 90, 90, 0.8)';
+    ctx.globalAlpha = Math.min(0.55, k.whiteFlash / 7);
+    ctx.beginPath();
+    ctx.ellipse(0, -16, 54, 19, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.globalAlpha = 1;
+  }
+
+  ctx.restore();
+}
+
+// The pool of red — drawn ON TOP of the flying balls so it stays visible
+// while Bruno is still shooting at him.
+function drawBloodPool() {
+  if (bloodPool <= 0) return;
+  const cx = poolX;
+  const cy = poolY + 6;
+  const r = bloodPool;
+  // Keep it flat on the ground however big it gets
+  const ry = Math.min(r * 0.2, 34);
+  ctx.save();
+  // Dark rim
+  ctx.fillStyle = 'rgba(105, 0, 0, 0.88)';
+  ctx.beginPath();
+  ctx.ellipse(cx, cy + 3, r * 1.08, ry * 1.15, 0, 0, Math.PI * 2);
+  ctx.fill();
+  // Main pool
+  ctx.fillStyle = 'rgba(168, 12, 12, 0.93)';
+  ctx.beginPath();
+  ctx.ellipse(cx, cy, r, ry, 0, 0, Math.PI * 2);
+  ctx.fill();
+  // Wet highlight
+  ctx.fillStyle = 'rgba(225, 45, 45, 0.7)';
+  ctx.beginPath();
+  ctx.ellipse(cx - r * 0.28, cy - ry * 0.2, r * 0.44, ry * 0.35, 0, 0, Math.PI * 2);
+  ctx.fill();
+  // Spread drips
+  ctx.fillStyle = 'rgba(168, 12, 12, 0.85)';
+  for (let i = 0; i < 6; i++) {
+    const a = (i / 6) * Math.PI * 2 + r * 0.1;
+    const d = r * (0.8 + ((i * 37) % 23) / 55);
+    ctx.beginPath();
+    ctx.ellipse(cx + Math.cos(a) * d, cy + Math.sin(a) * d * 0.12,
+                4 + (i % 3) * 2, 2.5 + (i % 2), 0, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.restore();
+}
+
+// Red droplets flying off on each impact
+function drawSplashes() {
+  for (const s of splashes) {
+    const k = s.t / 22;
+    for (let i = 0; i < 6; i++) {
+      const a = (i / 6) * Math.PI * 2 + s.t * 0.2;
+      const d = k * (18 + (i % 3) * 9);
+      ctx.fillStyle = `rgba(190, 20, 20, ${Math.max(0, 0.9 - k)})`;
+      ctx.beginPath();
+      ctx.ellipse(s.x + Math.cos(a) * d, s.y + Math.sin(a) * d * 0.7 - k * 12,
+                  3.5 * (1 - k * 0.5), 2.5 * (1 - k * 0.5), 0, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+}
+
+// Red flash over the goal on each impact
+function drawHitFlash() {
+  if (hitFlash <= 0) return;
+  const a = Math.min(0.4, hitFlash / 7 * 0.4);
+  ctx.fillStyle = `rgba(180, 0, 0, ${a})`;
+  ctx.fillRect(GOAL_LEFT, GOAL_TOP, GOAL_WIDTH, GOAL_HEIGHT);
+}
+
+// ============================================================
+//   Drawing — Keeper sitting on the pitch, crying in a ball
+// ============================================================
+function drawSittingKeeper(k) {
+  const x = k.x, y = k.y;
+  ctx.save();
+  ctx.translate(x, y);
+
+  // Shadow
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
+  ctx.beginPath();
+  ctx.ellipse(0, 8, 48, 13, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Curled-up body (hunched over, head down)
+  ctx.fillStyle = '#00A651';
+  ctx.beginPath();
+  ctx.ellipse(0, -28, 40, 32, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = '#008035';
+  ctx.beginPath();
+  ctx.ellipse(0, -8, 40, 15, 0, 0, Math.PI * 2);
+  ctx.fill();
+  // White chest stripe around the back
+  ctx.fillStyle = '#FFFFFF';
+  ctx.fillRect(-38, -44, 76, 5);
+
+  // Knees pulled up in front
+  ctx.fillStyle = '#00C040';
+  ctx.beginPath();
+  ctx.ellipse(-23, -16, 18, 16, 0, 0, Math.PI * 2);
+  ctx.ellipse(23, -16, 18, 16, 0, 0, Math.PI * 2);
+  ctx.fill();
+  // Socks
+  ctx.fillStyle = '#FFFFFF';
+  ctx.beginPath();
+  ctx.ellipse(-25, -3, 10, 8, 0, 0, Math.PI * 2);
+  ctx.ellipse(25, -3, 10, 8, 0, 0, Math.PI * 2);
+  ctx.fill();
+  // Boots
+  ctx.fillStyle = '#000';
+  ctx.fillRect(-36, -8, 19, 9);
+  ctx.fillRect(17, -8, 19, 9);
+
+  // Arms wrapped around the knees
+  ctx.strokeStyle = '#00A651';
+  ctx.lineWidth = 11;
+  ctx.lineCap = 'round';
+  ctx.beginPath();
+  ctx.moveTo(-32, -38);
+  ctx.quadraticCurveTo(0, -20, 32, -38);
+  ctx.stroke();
+
+  // Head tucked down between the knees
+  ctx.fillStyle = '#d4a070';
+  ctx.beginPath();
+  ctx.arc(0, -54, 15, 0, Math.PI * 2);
+  ctx.fill();
+  // Hair
+  ctx.fillStyle = '#2a1a0a';
+  ctx.beginPath();
+  ctx.arc(0, -58, 14, Math.PI, Math.PI * 2);
+  ctx.fill();
+  // Cap pulled right down over the eyes
+  ctx.fillStyle = '#00A651';
+  ctx.beginPath();
+  ctx.arc(0, -56, 15, Math.PI, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = '#008035';
+  ctx.fillRect(-16, -56, 32, 3);
+
+  // Tears streaming down off the cap onto the grass
+  const t = performance.now() / 110;
+  for (let i = 0; i < 3; i++) {
+    const off = ((t + i * 0.55) % 1.5);
+    const ty = -48 + off * 48;
+    const size = 3.2 + Math.sin(off * 3) * 0.9;
+    ctx.fillStyle = `rgba(120, 200, 255, ${Math.max(0, 0.95 - off * 0.5)})`;
+    ctx.beginPath();
+    ctx.ellipse(-5 + Math.sin(t * 2 + i) * 1.3, ty, size * 0.7, size, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.ellipse(5 + Math.sin(t * 2 + i + 1.3) * 1.3, ty, size * 0.7, size, 0, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  // Pool of tears on the grass
+  ctx.fillStyle = 'rgba(120, 200, 255, 0.35)';
+  ctx.beginPath();
+  ctx.ellipse(0, 4, 32 + Math.sin(t) * 3, 8, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Wail marks
+  ctx.strokeStyle = 'rgba(255,255,255,0.9)';
+  ctx.lineWidth = 3;
+  const wob = Math.sin(performance.now() / 90) * 3;
+  ctx.beginPath();
+  ctx.arc(-34, -82 + wob, 7, Math.PI * 0.9, Math.PI * 1.6);
+  ctx.arc(34, -82 - wob, 7, Math.PI * 1.4, Math.PI * 2.1);
+  ctx.stroke();
+
+  ctx.restore();
+}
+
+// ============================================================
+//   Drawing — The phone lying on the grass next to Bruno
+// ============================================================
+function drawPhone() {
+  // The phone only turns up once the crying emoji has been clicked
+  if (!chaosMode || phoneOpen || !phoneUnlocked) return;
+  const pulse = 0.5 + Math.sin(performance.now() / 200) * 0.5;
+  ctx.save();
+  ctx.translate(PHONE_X, PHONE_Y);
+  ctx.rotate(-0.2);
+
+  // Shadow
+  ctx.fillStyle = 'rgba(0,0,0,0.45)';
+  ctx.beginPath();
+  ctx.ellipse(0, 46, 32, 8, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Body
+  ctx.fillStyle = '#11131a';
+  ctx.beginPath();
+  if (ctx.roundRect) ctx.roundRect(-25, -42, 50, 84, 9);
+  else ctx.rect(-25, -42, 50, 84);
+  ctx.fill();
+  ctx.strokeStyle = '#454b5a';
+  ctx.lineWidth = 2.5;
+  ctx.stroke();
+
+  // Screen — glowing
+  ctx.fillStyle = `rgba(45, 125, 225, ${0.35 + pulse * 0.4})`;
+  ctx.fillRect(-20, -36, 40, 72);
+  // Incoming call icon + 000
+  ctx.fillStyle = '#fff';
+  ctx.font = 'bold 22px monospace';
+  ctx.textAlign = 'center';
+  ctx.fillText('☎', 0, -10);
+  ctx.font = 'bold 11px monospace';
+  ctx.fillText('000', 0, 10);
+  // Little call bars
+  for (let i = 0; i < 4; i++) {
+    ctx.fillStyle = `rgba(255,255,255,${0.25 + pulse * 0.6})`;
+    ctx.fillRect(-16 + i * 9, 22 - i * 3, 5, 3 + i * 3);
+  }
+
+  ctx.restore();
+
+  // Pulsing tap ring + label
+  ctx.strokeStyle = `rgba(251, 225, 34, ${0.35 + pulse * 0.55})`;
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.arc(PHONE_X, PHONE_Y, 46 + pulse * 8, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.fillStyle = '#FBE122';
+  ctx.font = 'bold 14px monospace';
+  ctx.textAlign = 'center';
+  ctx.fillText('TAP THE PHONE', PHONE_X, PHONE_Y + 68);
+}
+
+// ============================================================
+//   Drawing — Ambulance
+// ============================================================
+function drawAmbulance() {
+  if (!ambulance) return;
+  const a = ambulance;
+  ctx.save();
+  ctx.translate(a.x, a.y);
+
+  // Shadow
+  ctx.fillStyle = 'rgba(0,0,0,0.42)';
+  ctx.beginPath();
+  ctx.ellipse(0, 62, 132, 12, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Body
+  ctx.fillStyle = '#F2F4F7';
+  ctx.beginPath();
+  if (ctx.roundRect) ctx.roundRect(-132, -74, 264, 124, 16);
+  else ctx.rect(-132, -74, 264, 124);
+  ctx.fill();
+  ctx.strokeStyle = '#9aa2ad';
+  ctx.lineWidth = 2.5;
+  ctx.stroke();
+
+  // Red stripe
+  ctx.fillStyle = '#DA291C';
+  ctx.fillRect(-132, -14, 264, 26);
+  // Yellow stripe under it
+  ctx.fillStyle = '#FBE122';
+  ctx.fillRect(-132, 12, 264, 7);
+
+  // Cab window
+  ctx.fillStyle = '#24313f';
+  ctx.beginPath();
+  if (ctx.roundRect) ctx.roundRect(74, -60, 48, 36, 7);
+  else ctx.rect(74, -60, 48, 36);
+  ctx.fill();
+  // Rear door window (open when collecting)
+  ctx.fillStyle = '#24313f';
+  ctx.beginPath();
+  if (ctx.roundRect) ctx.roundRect(-120, -58, 40, 32, 6);
+  else ctx.rect(-120, -58, 40, 32);
+  ctx.fill();
+
+  // AMBULANCE label
+  ctx.fillStyle = '#1c2430';
+  ctx.font = 'bold 19px monospace';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('AMBULANCE', -18, -44);
+
+  // Blue + red flashing lights
+  const blink = Math.floor(performance.now() / 160) % 2;
+  ctx.fillStyle = blink ? '#ff2d2d' : '#5a2020';
+  ctx.fillRect(-28, -90, 26, 17);
+  ctx.fillStyle = blink ? '#1d3a8a' : '#16224a';
+  ctx.fillRect(4, -90, 26, 17);
+  // Light glow
+  if (blink) {
+    ctx.fillStyle = 'rgba(255, 45, 45, 0.22)';
+    ctx.beginPath();
+    ctx.arc(-15, -82, 34, 0, Math.PI * 2);
+    ctx.fill();
+  } else {
+    ctx.fillStyle = 'rgba(60, 120, 255, 0.2)';
+    ctx.beginPath();
+    ctx.arc(17, -82, 34, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  // Wheels
+  ctx.fillStyle = '#16181d';
+  for (const wx of [-82, 78]) {
+    ctx.beginPath();
+    ctx.arc(wx, 52, 19, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#8b919b';
+    ctx.beginPath();
+    ctx.arc(wx, 52, 8, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#16181d';
+  }
+
+  ctx.restore();
+}
+
+// The trolley the keeper is loaded onto
+function drawStretcher() {
+  if (!stretcher) return;
+  const x = stretcher.x, y = stretcher.y;
+  ctx.save();
+  ctx.translate(x, y);
+  // Frame
+  ctx.fillStyle = '#b6bcc6';
+  ctx.fillRect(-52, -6, 104, 8);
+  ctx.fillRect(-46, -18, 7, 20);
+  ctx.fillRect(39, -18, 7, 20);
+  // Mattress
+  ctx.fillStyle = '#d9dde4';
+  ctx.beginPath();
+  if (ctx.roundRect) ctx.roundRect(-50, -22, 100, 18, 5);
+  else ctx.rect(-50, -22, 100, 18);
+  ctx.fill();
+  // Wheels
+  ctx.fillStyle = '#2b2e34';
+  ctx.beginPath(); ctx.arc(-38, 8, 8, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc(38, 8, 8, 0, Math.PI * 2); ctx.fill();
+  ctx.restore();
+}
+
+// Blood drips left on the grass as the ambulance drives off
+function drawBloodTrails() {
+  for (const d of bloodTrails) {
+    ctx.fillStyle = `rgba(168, 12, 12, ${d.a})`;
+    ctx.beginPath();
+    ctx.ellipse(d.x, d.y, d.r, d.r * 0.34, 0, 0, Math.PI * 2);
+    ctx.fill();
+  }
+}
+
+// ============================================================
+//   Drawing — Rifle tracer lines
+// ============================================================
+function drawTracers() {
+  for (const tr of tracers) {
+    const a = Math.max(0, 1 - tr.t / 11);
+    ctx.strokeStyle = `rgba(255, 224, 120, ${a})`;
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.moveTo(tr.x1, tr.y1);
+    ctx.lineTo(tr.x2, tr.y2);
+    ctx.stroke();
+  }
+}
+
+// ============================================================
+//   Drawing — Hearse
+// ============================================================
+function drawHearse() {
+  if (!hearse) return;
+  const h = hearse;
+  ctx.save();
+  ctx.translate(h.x, h.y);
+
+  // Shadow
+  ctx.fillStyle = 'rgba(0,0,0,0.45)';
+  ctx.beginPath();
+  ctx.ellipse(0, 60, 140, 12, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Body — long, black, funeral car
+  ctx.fillStyle = '#15171d';
+  ctx.beginPath();
+  if (ctx.roundRect) ctx.roundRect(-140, -68, 280, 118, 15);
+  else ctx.rect(-140, -68, 280, 118);
+  ctx.fill();
+  ctx.strokeStyle = '#3c414d';
+  ctx.lineWidth = 2.5;
+  ctx.stroke();
+
+  // Cream roof over the coffin compartment
+  ctx.fillStyle = '#e9e4d6';
+  ctx.beginPath();
+  if (ctx.roundRect) ctx.roundRect(-98, -60, 152, 40, 9);
+  else ctx.rect(-98, -60, 152, 40);
+  ctx.fill();
+
+  // Gold trim
+  ctx.fillStyle = '#d4af37';
+  ctx.fillRect(-140, -10, 280, 7);
+  ctx.fillRect(-140, 30, 280, 4);
+  ctx.fillRect(-98, -60, 152, 4);
+
+  // Cab window
+  ctx.fillStyle = '#24313f';
+  ctx.beginPath();
+  if (ctx.roundRect) ctx.roundRect(86, -54, 44, 34, 7);
+  else ctx.rect(86, -54, 44, 34);
+  ctx.fill();
+
+  // Rear doors — they open while they are loading him
+  const openDoor = (h.phase === 'open' || h.phase === 'coffin' || h.phase === 'lift' || h.phase === 'carry');
+  ctx.fillStyle = openDoor ? '#0d0f13' : '#1b1e25';
+  ctx.beginPath();
+  if (ctx.roundRect) ctx.roundRect(-134, -56, 42, 44, 5);
+  else ctx.rect(-134, -56, 42, 44);
+  ctx.fill();
+  if (openDoor) {
+    // The swung-open door
+    ctx.save();
+    ctx.translate(-134, -56);
+    ctx.transform(1, 0, -0.45, 1, 0, 0);
+    ctx.fillStyle = '#22262e';
+    ctx.fillRect(0, 0, 38, 44);
+    ctx.strokeStyle = '#4a505d';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(0, 0, 38, 44);
+    ctx.restore();
+  }
+
+  // HEARSE lettering
+  ctx.fillStyle = '#d4af37';
+  ctx.font = 'bold 17px monospace';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('HEARSE', 16, -34);
+
+  // Wheels
+  ctx.fillStyle = '#16181d';
+  for (const wx of [-86, 76]) {
+    ctx.beginPath();
+    ctx.arc(wx, 50, 20, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#8b919b';
+    ctx.beginPath();
+    ctx.arc(wx, 50, 8, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#16181d';
+  }
+
+  ctx.restore();
+}
+
+// ============================================================
+//   Drawing — Pallbearers and the coffin
+// ============================================================
+function drawBearer(bx, by, carry) {
+  ctx.save();
+  ctx.translate(bx, by);
+  // Shadow
+  ctx.fillStyle = 'rgba(0,0,0,0.35)';
+  ctx.beginPath();
+  ctx.ellipse(0, 4, 13, 4, 0, 0, Math.PI * 2);
+  ctx.fill();
+  // Legs
+  ctx.fillStyle = '#191b21';
+  ctx.fillRect(-8, -30, 6, 30);
+  ctx.fillRect(2, -30, 6, 30);
+  // Suit
+  ctx.fillStyle = '#24272f';
+  ctx.fillRect(-10, -56, 20, 28);
+  // Shirt + tie
+  ctx.fillStyle = '#ececec';
+  ctx.fillRect(-3, -56, 6, 15);
+  ctx.fillStyle = '#8b1a1a';
+  ctx.fillRect(-1, -52, 2, 11);
+  // Arms — up when carrying
+  ctx.strokeStyle = '#24272f';
+  ctx.lineWidth = 5;
+  ctx.lineCap = 'round';
+  ctx.beginPath();
+  ctx.moveTo(-9, -50); ctx.lineTo(carry ? -16 : -13, carry ? -36 : -24); ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(9, -50); ctx.lineTo(carry ? 16 : 13, carry ? -36 : -24); ctx.stroke();
+  // Head
+  ctx.fillStyle = '#d8b08c';
+  ctx.beginPath();
+  ctx.arc(0, -64, 8, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = '#2b2219';
+  ctx.beginPath();
+  ctx.arc(0, -67, 8, Math.PI, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+}
+
+function drawCoffin(cx, cy) {
+  ctx.save();
+  ctx.translate(cx, cy);
+  // Coffin shape
+  ctx.fillStyle = '#6b4423';
+  ctx.beginPath();
+  ctx.moveTo(-46, 0);
+  ctx.lineTo(-33, -17);
+  ctx.lineTo(33, -17);
+  ctx.lineTo(46, 0);
+  ctx.lineTo(33, 17);
+  ctx.lineTo(-33, 17);
+  ctx.closePath();
+  ctx.fill();
+  ctx.strokeStyle = '#d4af37';
+  ctx.lineWidth = 2.5;
+  ctx.stroke();
+  // White pall band down the middle
+  ctx.fillStyle = '#efe9dc';
+  ctx.beginPath();
+  ctx.moveTo(-14, -17);
+  ctx.lineTo(14, -17);
+  ctx.lineTo(17, 17);
+  ctx.lineTo(-17, 17);
+  ctx.closePath();
+  ctx.fill();
+  ctx.restore();
+}
+
+function drawPallbearers() {
+  if (!hearse) return;
+  const h = hearse;
+  if (h.phase === 'in' || h.phase === 'out') return;
+  const carrying = (h.phase === 'lift' || h.phase === 'carry');
+  for (let i = 0; i < 4; i++) {
+    drawBearer(h.bx[i], h.by || 348, carrying || h.phase === 'coffin');
+  }
+  // The coffin rides with them
+  if (h.phase === 'coffin' || h.phase === 'lift' || h.phase === 'carry') {
+    drawCoffin(h.coffinX, h.coffinY);
+  }
+}
+
+// Bruno's "oh well" speech bubble
+function drawOhWell() {
+  if (ohWellTimer <= 0) return;
+  const a = Math.min(1, ohWellTimer / 40);
+  const x = BALL_START_X + 96, y = BALL_START_Y - 196;
+  ctx.globalAlpha = a;
+  ctx.fillStyle = 'rgba(255,255,255,0.96)';
+  ctx.beginPath();
+  if (ctx.roundRect) ctx.roundRect(x - 58, y - 17, 116, 34, 11);
+  else ctx.rect(x - 58, y - 17, 116, 34);
+  ctx.fill();
+  ctx.strokeStyle = '#000';
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+  // tail
+  ctx.beginPath();
+  ctx.moveTo(x - 34, y + 15);
+  ctx.lineTo(x - 46, y + 36);
+  ctx.lineTo(x - 14, y + 15);
+  ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
+  ctx.fillStyle = '#111';
+  ctx.font = 'bold 19px monospace';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('oh well', x, y);
+  ctx.globalAlpha = 1;
+}
+
+// ============================================================
+//   Drawing — Bruno Fernandes
+// ============================================================
+function drawBruno() {
+  const x = BALL_START_X;
+  const y = BALL_START_Y;
+  const phase = Math.sin(performance.now() * 0.003) * 0.02;
+
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.scale(1.4, 1.4);  // Make Bruno bigger and more visible
+  ctx.rotate(phase);
+
+  // Shadow
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+  ctx.beginPath();
+  ctx.ellipse(0, 60, 55, 10, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Legs (black shorts)
+  ctx.fillStyle = '#1a1a1a';
+  ctx.fillRect(-22, 0, 16, 50);
+  ctx.fillRect(6, 0, 16, 50);
+  // Socks (black with red band)
+  ctx.fillStyle = '#1a1a1a';
+  ctx.fillRect(-22, 45, 16, 18);
+  ctx.fillRect(6, 45, 16, 18);
+  ctx.fillStyle = '#DA291C';
+  ctx.fillRect(-22, 50, 16, 3);
+  ctx.fillRect(6, 50, 16, 3);
+  // Boots (bright)
+  ctx.fillStyle = '#FFFFFF';
+  ctx.fillRect(-28, 60, 28, 10);
+  ctx.fillRect(2, 60, 28, 10);
+  ctx.fillStyle = '#DA291C';
+  ctx.fillRect(-28, 67, 28, 3);
+  ctx.fillRect(2, 67, 28, 3);
+
+  // Body (jersey — red with white/black trim)
+  const bodyGrad = ctx.createLinearGradient(-35, -90, 35, 0);
+  bodyGrad.addColorStop(0, '#8B0000');
+  bodyGrad.addColorStop(0.4, '#DA291C');
+  bodyGrad.addColorStop(0.6, '#FF3030');
+  bodyGrad.addColorStop(1, '#8B0000');
+  ctx.fillStyle = bodyGrad;
+  ctx.beginPath();
+  ctx.moveTo(-35, 0);
+  ctx.lineTo(-40, -75);
+  ctx.lineTo(40, -75);
+  ctx.lineTo(35, 0);
+  ctx.closePath();
+  ctx.fill();
+  // White collar
+  ctx.fillStyle = '#FFFFFF';
+  ctx.fillRect(-12, -75, 24, 6);
+  // Black shoulder stripes
+  ctx.fillStyle = '#000';
+  ctx.fillRect(-40, -75, 6, 18);
+  ctx.fillRect(34, -75, 6, 18);
+  // Number 8
+  ctx.fillStyle = '#FFFFFF';
+  ctx.font = 'bold 36px monospace';
+  ctx.textAlign = 'center';
+  // A glow appears around the 8 as it is clicked (and burns hot in chaos mode)
+  if (shirtClicks > 0 || chaosMode) {
+    const glow = chaosMode
+      ? 0.75 + Math.sin(performance.now() / 90) * 0.25
+      : 0.28 + (shirtClicks * 0.2) + Math.sin(performance.now() / 160) * 0.08;
+    ctx.save();
+    ctx.shadowColor = chaosMode ? '#FF2D2D' : '#FBE122';
+    ctx.shadowBlur = 26 * glow;
+    ctx.fillStyle = chaosMode ? '#FFD700' : '#FFF7C2';
+    ctx.fillText('8', 0, -32);
+    ctx.restore();
+  }
+  ctx.fillText('8', 0, -32);
+  ctx.strokeStyle = '#000';
+  ctx.lineWidth = 1.5;
+  ctx.strokeText('8', 0, -32);
+  // Click counter badge above Bruno's head
+  if (shirtClicks > 0 && !chaosMode && !fastMode) {
+    ctx.fillStyle = 'rgba(0,0,0,0.65)';
+    ctx.fillRect(-30, -140, 60, 22);
+    ctx.strokeStyle = '#FBE122';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(-30, -140, 60, 22);
+    ctx.fillStyle = '#FBE122';
+    ctx.font = 'bold 14px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText(`8 x ${shirtClicks}`, 0, -124);
+    ctx.font = 'bold 36px monospace';
+  }
+  // MUFC badge (simple)
+  ctx.fillStyle = '#FBE122';
+  ctx.beginPath();
+  ctx.arc(-22, -55, 5, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = '#000';
+  ctx.font = 'bold 6px monospace';
+  ctx.fillText('MU', -22, -53);
+
+  // Arms
+  ctx.strokeStyle = '#DA291C';
+  ctx.lineWidth = 16;
+  ctx.lineCap = 'round';
+  if (rifle.on) {
+    // Both arms up, holding the rifle
+    ctx.beginPath();
+    ctx.moveTo(-30, -65); ctx.lineTo(-2, -46); ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(30, -65); ctx.lineTo(30, -76); ctx.stroke();
+    // --- The AR15 ---
+    ctx.save();
+    ctx.translate(28, -70);
+    ctx.rotate(-0.12);
+    // Stock
+    ctx.fillStyle = '#1b1b1b';
+    ctx.beginPath();
+    if (ctx.roundRect) ctx.roundRect(-12, 22, 26, 34, 5); else ctx.rect(-12, 22, 26, 34);
+    ctx.fill();
+    // Receiver
+    ctx.fillRect(-6, -18, 30, 42);
+    // Magazine
+    ctx.fillStyle = '#2a2a2a';
+    ctx.beginPath();
+    if (ctx.roundRect) ctx.roundRect(2, 22, 14, 30, 3); else ctx.rect(2, 22, 14, 30);
+    ctx.fill();
+    // Barrel
+    ctx.fillStyle = '#111';
+    ctx.fillRect(8, -68, 9, 52);
+    // Rail + sights
+    ctx.fillStyle = '#0a0a0a';
+    ctx.fillRect(-2, -24, 22, 6);
+    ctx.fillRect(9, -74, 5, 8);
+    // Hands over the weapon
+    ctx.fillStyle = '#c89870';
+    ctx.beginPath(); ctx.arc(14, 2, 7, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(6, 30, 7, 0, Math.PI * 2); ctx.fill();
+    // Muzzle flash
+    if (rifle.flash > 0) {
+      const f = rifle.flash / 6;
+      ctx.fillStyle = `rgba(255, 230, 120, ${0.9 * f})`;
+      ctx.beginPath();
+      ctx.moveTo(12, -68);
+      ctx.lineTo(12 - 22 * f, -82 - 16 * f);
+      ctx.lineTo(12 + 26 * f, -96 - 20 * f);
+      ctx.lineTo(12 + 8 * f, -68);
+      ctx.closePath();
+      ctx.fill();
+      ctx.fillStyle = `rgba(255,255,220,${f})`;
+      ctx.beginPath();
+      ctx.arc(12, -70, 13 * f, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.restore();
+  } else {
+    // Left arm (slightly back, ready to swing)
+    ctx.beginPath();
+    ctx.moveTo(-30, -65);
+    ctx.lineTo(-55, -10);
+    ctx.stroke();
+    // Right arm (swinging forward for kick)
+    const swingPhase = Math.sin(performance.now() * 0.005) * 0.3;
+    ctx.beginPath();
+    ctx.moveTo(30, -65);
+    ctx.lineTo(50 + swingPhase * 10, -40 + swingPhase * 15);
+    ctx.stroke();
+  }
+
+  // Head
+  ctx.fillStyle = '#c89870';
+  ctx.beginPath();
+  ctx.arc(0, -95, 20, 0, Math.PI * 2);
+  ctx.fill();
+  // Hair (short, dark)
+  ctx.fillStyle = '#1a1a1a';
+  ctx.beginPath();
+  ctx.arc(0, -103, 18, Math.PI, Math.PI * 2);
+  ctx.fill();
+  ctx.fillRect(-16, -105, 32, 8);
+  // Beard
+  ctx.fillStyle = 'rgba(40, 25, 15, 0.6)';
+  ctx.beginPath();
+  ctx.arc(0, -88, 14, 0, Math.PI);
+  ctx.fill();
+
+  ctx.restore();
+}
+
+// ============================================================
+//   Drawing — Ball
+// ============================================================
+function drawBall() {
+  if (!ball) return;
+  const x = ball.x, y = ball.y;
+  // Shadow
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
+  ctx.beginPath();
+  ctx.ellipse(x, GOAL_BOTTOM + 4, BALL_R * 1.2, 4, 0, 0, Math.PI * 2);
+  ctx.fill();
+  // Ball body
+  ctx.fillStyle = '#FFFFFF';
+  ctx.beginPath();
+  ctx.arc(x, y, BALL_R, 0, Math.PI * 2);
+  ctx.fill();
+  // Ball pattern (simplified)
+  ctx.strokeStyle = '#000';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.arc(x, y, BALL_R, 0, Math.PI * 2);
+  ctx.stroke();
+  // Pentagon pattern
+  ctx.fillStyle = '#000';
+  for (let i = 0; i < 5; i++) {
+    const a = (i / 5) * Math.PI * 2 + ball.rotation;
+    const px = x + Math.cos(a) * BALL_R * 0.5;
+    const py = y + Math.sin(a) * BALL_R * 0.5;
+    ctx.beginPath();
+    ctx.arc(px, py, BALL_R * 0.25, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  // Motion trail
+  if (ball.trail) {
+    for (let i = 0; i < ball.trail.length; i++) {
+      const t = ball.trail[i];
+      const alpha = i / ball.trail.length * 0.5;
+      ctx.fillStyle = `rgba(255, 255, 255, ${alpha})`;
+      ctx.beginPath();
+      ctx.arc(t.x, t.y, BALL_R * (i / ball.trail.length) * 0.8, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+}
+
+// ============================================================
+//   Drawing — Direction Meter (at the bottom)
+// ============================================================
+function drawMeter() {
+  if (state !== 'aim') return;
+  // In fast mode Bruno plays on his own — no meter, no clicking
+  if (fastMode) return;
+  const y = 670;
+  const w = GOAL_WIDTH + 200;  // match the extension range
+  const x0 = W/2 - w/2;
+
+  // Background
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
+  ctx.fillRect(x0, y, w, 26);
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+  ctx.lineWidth = 2;
+  ctx.strokeRect(x0, y, w, 26);
+
+  // "In goal" zone (the actual goal opening)
+  const goalX0 = W/2 - GOAL_WIDTH/2;
+  const goalX1 = W/2 + GOAL_WIDTH/2;
+  const goalRelStart = goalX0 - x0;
+  const goalRelEnd   = goalX1 - x0;
+  ctx.fillStyle = 'rgba(0, 200, 100, 0.35)';
+  ctx.fillRect(x0 + goalRelStart, y, goalRelEnd - goalRelStart, 26);
+  ctx.strokeStyle = '#00ff66';
+  ctx.lineWidth = 2;
+  ctx.strokeRect(x0 + goalRelStart, y, goalRelEnd - goalRelStart, 26);
+
+  // Indicator
+  const indX = shotDirToX(shotDir);
+  ctx.fillStyle = '#FBE122';
+  ctx.fillRect(indX - 4, y - 4, 8, 34);
+  ctx.strokeStyle = '#FFFFFF';
+  ctx.lineWidth = 2;
+  ctx.strokeRect(indX - 4, y - 4, 8, 34);
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+  ctx.fillRect(indX - 3, y - 3, 6, 4);
+
+  // Label
+  ctx.fillStyle = '#FFFFFF';
+  ctx.font = 'bold 14px monospace';
+  ctx.textAlign = 'center';
+  ctx.fillText('SHOT DIRECTION — CLICK WHEN INDICATOR IS IN THE GOAL', W/2, y - 8);
+}
+
+// ============================================================
+//   Drawing — Score Panel
+// ============================================================
+// ============================================================
+//   Drawing — Chaos mode (the 8 secret)
+// ============================================================
+function drawChaosBalls() {
+  for (const b of chaosBalls) {
+    // Trail
+    for (let i = 0; i < b.trail.length; i++) {
+      const t = b.trail[i];
+      const alpha = i / b.trail.length * 0.5;
+      ctx.fillStyle = `rgba(255, 255, 255, ${alpha})`;
+      ctx.beginPath();
+      ctx.arc(t.x, t.y, BALL_R * (i / b.trail.length) * 0.8, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    // Ball body
+    ctx.fillStyle = '#FFFFFF';
+    ctx.beginPath();
+    ctx.arc(b.x, b.y, BALL_R, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = '#000';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.arc(b.x, b.y, BALL_R, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.fillStyle = '#000';
+    for (let i = 0; i < 5; i++) {
+      const a = (i / 5) * Math.PI * 2 + b.rotation;
+      ctx.beginPath();
+      ctx.arc(b.x + Math.cos(a) * BALL_R * 0.5, b.y + Math.sin(a) * BALL_R * 0.5,
+              BALL_R * 0.25, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+}
+
+function drawFleeTears() {
+  for (const tr of fleeTears) {
+    ctx.fillStyle = `rgba(120, 200, 255, ${Math.max(0, tr.life)})`;
+    ctx.beginPath();
+    ctx.ellipse(tr.x, tr.y, 3, 4.2, 0, 0, Math.PI * 2);
+    ctx.fill();
+  }
+}
+
+function drawClickPings() {
+  for (const p of clickPings) {
+    const k = p.t / 28;
+    ctx.strokeStyle = `rgba(251, 225, 34, ${1 - k})`;
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, 14 + k * 40, 0, Math.PI * 2);
+    ctx.stroke();
+  }
+}
+
+// Big readable number — millions/billions get abbreviated so the display
+// never overflows its box.
+function formatBig(n) {
+  if (n < 1000000) return n.toLocaleString();
+  if (n < 1e9) return (n / 1e6).toFixed(2) + 'M';
+  if (n < 1e12) return (n / 1e9).toFixed(2) + 'B';
+  return (n / 1e12).toFixed(2) + 'T';
+}
+
+function drawChaosOverlay() {
+  // Click feedback rings live in world space (on the 8)
+  drawClickPings();
+
+  if (!chaosMode) return;
+
+  // --- Top banner ---
+  const pulse = 0.85 + Math.sin(performance.now() / 110) * 0.15;
+  ctx.fillStyle = targetMode ? 'rgba(120, 0, 0, 0.92)' : (keeperHome ? 'rgba(0, 60, 100, 0.9)' : 'rgba(120, 0, 0, 0.88)');
+  ctx.fillRect(0, 0, W, 58);
+  ctx.strokeStyle = targetMode ? '#FF2D2D' : (keeperHome ? '#7FD4FF' : '#FFD700');
+  ctx.lineWidth = 3;
+  ctx.strokeRect(1.5, 1.5, W - 3, 55);
+  ctx.fillStyle = targetMode ? '#FF6B6B' : (keeperHome ? '#7FD4FF' : `rgba(255, 215, 0, ${pulse})`);
+  ctx.font = 'bold 28px monospace';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(targetMode
+    ? 'BRUNO IS AIMING STRAIGHT AT THE KEEPER'
+    : (keeperHome
+      ? 'KEEPER IS BACK — HE SAVES EVERYTHING, SCORE LOCKED'
+      : '8 MODE UNLOCKED  —  100 GOALS PER MILLISECOND'), W / 2, 29);
+
+  // --- Giant score readout (kept clear of the goal so the keeper stays visible) ---
+  ctx.fillStyle = 'rgba(0,0,0,0.6)';
+  ctx.fillRect(W / 2 - 320, 62, 640, 92);
+  ctx.strokeStyle = '#FFD700';
+  ctx.lineWidth = 3;
+  ctx.strokeRect(W / 2 - 320, 62, 640, 92);
+  ctx.fillStyle = '#00ff66';
+  ctx.font = 'bold 48px monospace';
+  ctx.textAlign = 'center';
+  ctx.fillText(`${formatBig(score)} GOALS`, W / 2, 94);
+  ctx.fillStyle = '#FFFFFF';
+  ctx.font = 'bold 17px monospace';
+  ctx.fillText(targetMode
+    ? `${formatBig(attempts)} SHOTS  —  EVERY ONE HIT THE KEEPER`
+    : (keeperHome
+      ? `${formatBig(attempts)} SHOTS  —  ALL SAVED, SCORE HELD`
+      : `${formatBig(attempts)} SHOTS  —  EVERY SINGLE ONE SCORED`), W / 2, 124);
+  ctx.fillStyle = '#FFD700';
+  ctx.font = 'bold 15px monospace';
+  ctx.fillText(targetMode ? '100 GOALS PER MILLISECOND — ALL AIMED AT HIM' : 'RATE: 100 goals per millisecond', W / 2, 144);
+
+  // --- Keeper status caption, on the pitch below the goal (clear of the keeper) ---
+  ctx.fillStyle = 'rgba(0,0,0,0.65)';
+  ctx.fillRect(GOAL_LEFT + 10, GOAL_BOTTOM + 14, GOAL_WIDTH - 20, 32);
+  ctx.fillStyle = '#7FD4FF';
+  ctx.font = 'bold 16px monospace';
+  ctx.textAlign = 'center';
+  ctx.fillText(rifle.on
+    ? 'BRUNO HAS AN AR15 AND IS NOT STOPPING'
+    : (targetMode
+      ? (keeperDown ? 'KEEPER IS DOWN. BRUNO KEEPS SHOOTING.' : 'KEEPER IS BACK IN GOAL. BRUNO IS NOT MISSING.')
+      : (keeperHome
+        ? 'KEEPER IS BACK IN GOAL — SAVING EVERY SHOT'
+        : 'KEEPER: SITTING ON THE PITCH, CRYING IN A BALL')), W / 2, GOAL_BOTTOM + 30);
+
+  // --- Sobbing face ---
+  if (keeper && keeper.pose === 'sitting') {
+    const ex = keeper.x + 92, ey = keeper.y - 40;
+    // Pulsing ring so it reads as clickable
+    const pr = 26 + Math.sin(performance.now() / 220) * 4;
+    ctx.strokeStyle = 'rgba(255, 215, 0, 0.75)';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.arc(ex, ey, pr, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.font = 'bold 38px monospace';
+    ctx.fillText('😭', ex, ey);
+    // Tiny hint under it
+    ctx.fillStyle = 'rgba(251, 225, 34, 0.9)';
+    ctx.font = 'bold 12px monospace';
+    ctx.fillText('CLICK', ex, ey + 32);
+  }
+
+  // --- The keeper's "SORRY!" bubble ---
+  // Drawn here (last) so it is never hidden behind any panel.
+  if (keeper && keeper.pose === 'sitting') {
+    drawKeeperBubble(keeper.x, keeper.y - 92, 0);   // tail points down at him
+    // Prompt so the player knows he can be clicked
+    ctx.fillStyle = 'rgba(0,0,0,0.78)';
+    ctx.fillRect(keeper.x - 132, keeper.y + 26, 264, 28);
+    ctx.strokeStyle = '#7FD4FF';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(keeper.x - 132, keeper.y + 26, 264, 28);
+    ctx.fillStyle = '#7FD4FF';
+    ctx.font = 'bold 14px monospace';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('CLICK HIM TO BRING HIM BACK', keeper.x, keeper.y + 40);
+  } else if (keeper && keeper.isCrying && keeper.x > -80 && keeper.x < W + 80) {
+    const side = keeper.x > W - 240 ? -1 : 1;
+    drawKeeperBubble(keeper.x + side * 56, keeper.y - 92, side);
+  }
+}
+
+// tail: 0 = points down at the head, -1/+1 = points left/right
+function drawKeeperBubble(bx, by, tail = 0) {
+  ctx.fillStyle = 'rgba(255,255,255,0.96)';
+  ctx.beginPath();
+  if (ctx.roundRect) ctx.roundRect(bx - 44, by - 14, 88, 28, 8);
+  else ctx.rect(bx - 44, by - 14, 88, 28);
+  ctx.fill();
+  ctx.strokeStyle = '#000';
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+  // tail
+  ctx.beginPath();
+  if (tail === 0) {
+    ctx.moveTo(bx - 9, by + 13);
+    ctx.lineTo(bx, by + 26);
+    ctx.lineTo(bx + 9, by + 13);
+  } else {
+    ctx.moveTo(bx - tail * 43, by - 4);
+    ctx.lineTo(bx - tail * 22, by + 4);
+    ctx.lineTo(bx - tail * 43, by + 11);
+  }
+  ctx.closePath();
+  ctx.fillStyle = 'rgba(255,255,255,0.96)';
+  ctx.fill();
+  ctx.strokeStyle = '#000';
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+  ctx.fillStyle = '#c0392b';
+  ctx.font = 'bold 14px monospace';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('SORRY!', bx, by);
+}
+
+function drawSavePops() {
+  for (const p of savePops) {
+    const a = Math.max(0, 1 - p.t / 45);
+    ctx.fillStyle = `rgba(127, 212, 255, ${a})`;
+    ctx.font = 'bold 26px monospace';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('SAVED!', p.x, p.y - p.t * 0.8);
+  }
+}
+
+function drawScore() {
+  // In chaos mode the banner covers the top strip, so the score panel drops
+  // below it. The goal count is ALWAYS on screen and always climbing —
+  // including while the keeper is bleeding out.
+  const sy = (chaosMode || fastMode) ? 66 : 16;
+  const ky = (chaosMode || fastMode) ? 114 : 64;
+  if (fastMode) {
+    ctx.fillStyle = 'rgba(120, 0, 0, 0.9)';
+    ctx.fillRect(0, 0, W, 42);
+    ctx.strokeStyle = '#FFD700';
+    ctx.lineWidth = 3;
+    ctx.strokeRect(1.5, 1.5, W - 3, 39);
+    ctx.fillStyle = '#FFD700';
+    ctx.font = 'bold 22px monospace';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('100x SPEED  —  BRUNO KEEPS SCORING', W / 2, 21);
+  }
+  // Version indicator (hidden in chaos mode — the banner is there instead)
+  if (!chaosMode) {
+    ctx.fillStyle = 'rgba(0,0,0,0.5)';
+    ctx.fillRect(10, 10, 130, 22);
+    ctx.fillStyle = '#FBE122';
+    ctx.font = 'bold 12px monospace';
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('BRUNO 8 v1.3', 18, 22);
+  }
+  // Score panel
+  ctx.fillStyle = 'rgba(0,0,0,0.6)';
+  ctx.fillRect(W - 280, sy, 260, 44);
+  ctx.strokeStyle = '#FBE122';
+  ctx.lineWidth = 2;
+  ctx.strokeRect(W - 280, sy, 260, 44);
+  ctx.fillStyle = '#fff';
+  const scoreTxt = chaosMode
+    ? `GOALS ${formatBig(score)}`
+    : `GOALS ${formatBig(score)}   ${formatBig(score)}/${formatBig(attempts)}`;
+  let fs = chaosMode ? 24 : 22;
+  ctx.font = `bold ${fs}px monospace`;
+  // Shrink to fit — the easter egg can leave a very large score on the board
+  while (ctx.measureText(scoreTxt).width > 236 && fs > 11) {
+    fs -= 1;
+    ctx.font = `bold ${fs}px monospace`;
+  }
+  ctx.textAlign = 'right';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(scoreTxt, W - 30, sy + 23);
+  // Streak
+  if (streak > 0 || bestStreak > 0) {
+    ctx.fillStyle = streak > 0 ? 'rgba(251, 225, 34, 0.2)' : 'rgba(0,0,0,0.4)';
+    ctx.fillRect(W - 280, ky, 260, 28);
+    ctx.strokeStyle = streak > 0 ? '#FBE122' : 'rgba(255,255,255,0.3)';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(W - 280, ky, 260, 28);
+    ctx.fillStyle = streak > 0 ? '#FBE122' : 'rgba(255,255,255,0.5)';
+    ctx.font = 'bold 14px monospace';
+    ctx.textAlign = 'right';
+    ctx.textBaseline = 'middle';
+    const txt = streak > 0
+      ? `★ STREAK: ${formatBig(streak)}${bestStreak > streak ? `   BEST: ${formatBig(bestStreak)}` : ''}`
+      : `BEST STREAK: ${formatBig(bestStreak)}`;
+    ctx.fillText(txt, W - 30, ky + 14);
+  }
+}
+
+// ============================================================
+//   Drawing — Result overlay
+// ============================================================
+function drawResult() {
+  if (state !== 'result' || !ball) return;
+  // Overlay
+  ctx.fillStyle = 'rgba(0,0,0,0.45)';
+  ctx.fillRect(0, 0, W, H);
+
+  const isGoal = ball.outcome === 'goal';
+  const isSave = ball.outcome === 'save';
+  const isMiss = ball.outcome === 'miss';
+  const isPost = ball.outcome === 'post';
+
+  let txt, color, sub;
+  if (isGoal) {
+    txt = 'GOAL!';
+    color = '#00ff66';
+    sub = 'Bruno buries it!';
+  } else if (isSave) {
+    txt = 'SAVED!';
+    color = '#FF6B1A';
+    sub = 'The keeper guessed right!';
+  } else if (isPost) {
+    txt = 'POST!';
+    color = '#FBE122';
+    sub = 'So close!';
+  } else {
+    txt = 'MISS!';
+    color = '#ff4444';
+    sub = 'Wide of the post';
+  }
+
+  ctx.font = 'bold 110px monospace';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.strokeStyle = '#000';
+  ctx.lineWidth = 6;
+  ctx.strokeText(txt, W/2, H/2 - 40);
+  ctx.fillStyle = color;
+  ctx.fillText(txt, W/2, H/2 - 40);
+
+  // Sub
+  ctx.font = 'bold 24px monospace';
+  ctx.fillStyle = '#FFFFFF';
+  ctx.fillText(sub, W/2, H/2 + 30);
+
+  // Direction stat
+  ctx.font = 'bold 18px monospace';
+  ctx.fillStyle = '#FBE122';
+  const dirTxt = (ball.dir > 0 ? '→' : '←') + ' ' + (Math.abs(ball.dir) * 100).toFixed(0) + '%';
+  ctx.fillText(`DIRECTION: ${dirTxt}   KEEPER: ${ball.keeperDir}`, W/2, H/2 + 70);
+}
+
+// ============================================================
+//   Game Logic
+// ============================================================
+// Screen position of the "8" on Bruno's shirt — mirrors drawBruno's
+// transform chain: translate(BALL_START) -> scale(1.4) -> rotate(phase).
+function shirtEightPos() {
+  const phase = Math.sin(performance.now() * 0.003) * 0.02;
+  const ly = -32 * 1.4;                  // local y after the 1.4 scale
+  const rx = -ly * Math.sin(phase);      // then rotated by phase
+  const ry =  ly * Math.cos(phase);
+  return { x: BALL_START_X + rx, y: BALL_START_Y + ry };
+}
+
+// Is a canvas-space point on the "8"?
+function isClickOnEight(px, py) {
+  const p = shirtEightPos();
+  return Math.abs(px - p.x) < 30 && Math.abs(py - p.y) < 34;
+}
+
+function registerShirtClick() {
+  if (chaosMode) return;
+  shirtClicks++;
+  const p = shirtEightPos();
+  clickPings.push({ x: p.x, y: p.y, t: 0 });
+  tone(440 + shirtClicks * 200, 0.12, 'square', 0.07);
+  if (shirtClicks >= 3) activateChaos();
+}
+
+function activateChaos() {
+  chaosMode = true;
+  chaosStart = performance.now();
+  chaosBaseScore = score;
+  chaosBaseAttempts = attempts;
+  chaosBalls = [];
+  lastChaosShot = 0;
+  ball = null;
+
+  // The keeper breaks down and RUNS off the pitch (he does not teleport —
+  // he sprints the whole way, crying the whole way)
+  keeperFlee = { dir: Math.random() < 0.5 ? -1 : 1, t: 0, startX: keeper ? keeper.x : KEEPER_X };
+  phoneUnlocked = false;     // the phone is locked until the emoji is clicked
+  if (keeper) {
+    keeper.isCrying = true;
+    keeper.isFleeing = true;
+    keeper.pose = 'runningOff';
+    keeper.sitX = 155;
+    keeper.sitY = 520;
+    keeper.isDiving = false;
+    keeper.diveAngle = 0;
+    keeper.diveProgress = 0;
+  }
+  state = 'shooting';   // the meter is retired; Bruno is on his own
+  hideAllInstr();       // the "click to take the penalty" prompt is retired too
+  sobSound();
+}
+
+// Clicking the crying keeper brings him back into the goal. From that
+// moment he saves everything Bruno fires, so the score holds exactly where
+// it was — it does not reset and it does not keep climbing.
+function callKeeperBack() {
+  if (!keeper || keeper.pose !== 'sitting') return;
+  keeperReturnMode = 'normal';
+  keeper.pose = 'returning';
+  keeper.returnT = 0;
+  keeper.returnFromX = keeper.x;
+  keeper.returnFromY = keeper.y;
+  // Freeze at the exact value at the moment of the click (not the last
+  // frame's value, which could be a few hundred behind).
+  scoreAtReturn = chaosBaseScore + Math.floor((performance.now() - chaosStart) * 100);
+  attemptsAtReturn = chaosBaseAttempts + Math.floor((performance.now() - chaosStart) * 100);
+  keeperHome = true;
+  tone(320, 0.18, 'triangle', 0.06, 620);
+}
+
+// Clicking the crying emoji instead of the keeper: he goes back into his
+// goal, and from then on EVERY shot Bruno fires is aimed straight at him.
+function callKeeperTargeted() {
+  if (!keeper || keeper.pose !== 'sitting') return;
+  keeperReturnMode = 'targeted';
+  targetMode = true;
+  phoneUnlocked = true;      // the phone now appears next to Bruno
+  keeper.pose = 'returning';
+  keeper.returnT = 0;
+  keeper.returnFromX = keeper.x;
+  keeper.returnFromY = keeper.y;
+  scoreAtReturn = chaosBaseScore + Math.floor((performance.now() - chaosStart) * 100);
+  attemptsAtReturn = chaosBaseAttempts + Math.floor((performance.now() - chaosStart) * 100);
+  keeperHome = true;
+  tone(150, 0.35, 'sawtooth', 0.08, 70);
+}
+
+// The easter egg finishes: normal penalty play resumes with the score
+// carried over intact, and the "8" can be clicked three more times to
+// trigger the whole thing again.
+function endChaosMode() {
+  chaosMode = false;
+  shirtClicks = 0;          // so the 8 can be re-triggered
+  chaosBalls = [];
+  fleeTears = [];
+  clickPings = [];
+  savePops = [];
+  keeperHome = false;
+  keeperFlee = null;
+  scoreAtReturn = 0;
+  attemptsAtReturn = 0;
+  bloodPool = 0;
+  keeperDown = false;
+  targetMode = false;
+  keeperReturnMode = 'normal';
+  splashes = [];
+  hitFlash = 0;
+  resetShot();              // fresh keeper in goal, meter back, state = 'aim'
+  showInstr('aim');
+  // Phone stuff
+  phoneOpen = false;
+  document.getElementById('phone-screen').classList.add('hidden');
+  ambulance = null;
+  stretcher = null;
+  bloodTrails = [];
+  rifle.on = false;
+  rifle.flash = 0;
+  rifle.shots = 0;
+  tracers = [];
+  poolX = KEEPER_X;
+  poolY = 340;
+  hearse = null;
+  fastMode = false;
+  fastWait = 0;
+  keeperGone = false;
+  ohWellTimer = 0;
+  riflePoolRate = 0;
+  phoneUnlocked = false;
+  fastStreaks = [];
+}
+// ============================================================
+//   The phone
+// ============================================================
+function openPhone() {
+  phoneOpen = true;
+  document.getElementById('phone-screen').classList.remove('hidden');
+  tone(620, 0.12, 'sine', 0.05, 900);
+  setTimeout(() => tone(880, 0.14, 'sine', 0.05, 1200), 160);
+}
+function closePhone() {
+  phoneOpen = false;
+  document.getElementById('phone-screen').classList.add('hidden');
+}
+
+// CALL 000 — an ambulance comes and collects the keeper
+function startAmbulance() {
+  closePhone();
+  if (keeper) {
+    keeper.pose = 'down';
+    keeper.stolen = false;
+    keeper.beamed = false;
+    keeper.landY = keeper.y;
+  }
+  ambulance = { x: W + 320, y: 352, phase: 'in', t: 0, stopX: 1075 };
+  stretcher = { x: keeper ? keeper.x : KEEPER_X, y: keeper ? keeper.y : poolY };
+  tone(440, 0.25, 'sine', 0.06, 660);
+  setTimeout(() => tone(660, 0.25, 'sine', 0.06, 880), 250);
+}
+
+// The other option — Bruno gets an AR15 and keeps shooting at him
+function startRifle() {
+  closePhone();
+  rifle.on = true;
+  rifle.t = 0;
+  rifle.flash = 0;
+  rifle.shots = 0;
+  // The pool forms where HE is, not where he used to be
+  if (bloodPool <= 0 && keeper) {
+    poolX = keeper.x;
+    poolY = keeper.y;
+  }
+  // It takes 10 seconds to reach the maximum pool
+  riflePoolStart = bloodPool;
+  riflePoolRate = (RIFLE_POOL_MAX - bloodPool) / RIFLE_POOL_FRAMES;
+  tone(90, 0.4, 'sawtooth', 0.1, 45);
+}
+
+function updateAmbulance(dt) {
+  if (!ambulance) return;
+  const a = ambulance;
+  a.t += dt;
+  if (a.phase === 'in') {
+    a.x -= 3.4 * dt;
+    if (a.x <= a.stopX) { a.x = a.stopX; a.phase = 'load'; a.t = 0; }
+  } else if (a.phase === 'load') {
+    // The trolley and the keeper slide into the back of the ambulance
+    const tx = a.x - 150, ty = a.y - 4;
+    if (keeper) {
+      keeper.x += (tx - keeper.x) * 0.05;
+      keeper.y += (ty - keeper.y) * 0.05;
+      if (stretcher) { stretcher.x = keeper.x; stretcher.y = keeper.y; }
+    }
+    if (a.t > 150) {
+      a.phase = 'out';
+      a.t = 0;
+      if (keeper) keeper.stolen = true;
+      stretcher = null;
+    }
+  } else if (a.phase === 'out') {
+    a.x += 5.0 * dt;
+    // He keeps dripping blood out of the back of the ambulance
+    if (Math.random() < 0.95) {
+      bloodTrails.push({
+        x: a.x - 132 - Math.random() * 16,
+        y: a.y + 34 + Math.random() * 12,
+        r: 3 + Math.random() * 8,
+        a: 0.92
+      });
+    }
+    if (a.x > W + 340) ambulance = null;
+  }
+}
+
+function updateRifle(dt) {
+  if (!rifle.on) return;
+  rifle.t += dt;
+  if (rifle.recoil > 0) rifle.recoil -= dt;
+  if (rifle.flash > 0) rifle.flash--;
+
+  // The pool keeps growing out of him — reaches the max in about 10 seconds
+  bloodPool = Math.min(RIFLE_POOL_MAX, bloodPool + riflePoolRate * dt);
+  // Once it is full, the hearse turns up
+  if (bloodPool >= RIFLE_POOL_MAX - 0.01 && !hearse && !keeperGone) {
+    startHearse();
+  }
+
+  if (rifle.t >= 9) {
+    rifle.t = 0;
+    rifle.flash = 6;
+    rifle.recoil = 3;
+    rifle.shots++;
+    // Muzzle position in world space (Bruno is scaled 1.4)
+    const mx = BALL_START_X + 36 * 1.4;
+    const my = BALL_START_Y - 138 * 1.4;
+    const kx = keeper ? keeper.x : KEEPER_X;
+    const ky = keeper ? keeper.y - 18 : poolY - 18;
+    tracers.push({ x1: mx, y1: my, x2: kx, y2: ky, t: 0 });
+    if (keeper && !keeper.stolen) {
+      // He stays DOWN — he just shudders where he lies, no flying
+      keeper.pose = 'down';
+      keeper.isCrying = false;
+      keeper.whiteFlash = 4;
+      keeper.shake = 6;
+    }
+    splashes.push({ x: kx, y: ky, t: 0 });
+    hitFlash = 6;
+    tone(70 + Math.random() * 40, 0.09, 'sawtooth', 0.11, 38);
+  }
+  for (let i = tracers.length - 1; i >= 0; i--) {
+    tracers[i].t += dt;
+    if (tracers[i].t > 11) tracers.splice(i, 1);
+  }
+}
+
+// The hearse turns up once the pool is at its maximum
+function startHearse() {
+  hearse = {
+    x: W + 340, y: 380, phase: 'in', t: 0, stopX: 1045,
+    coffinX: 0, coffinY: 0, by: 0,
+    bx: [0, 0, 0, 0]
+  };
+  tone(300, 0.5, 'sine', 0.07, 200);
+  setTimeout(() => tone(230, 0.5, 'sine', 0.07, 170), 320);
+}
+
+function updateHearse(dt) {
+  if (!hearse) return;
+  const h = hearse;
+  h.t += dt;
+  const kx = keeper ? keeper.x : KEEPER_X;
+  const ky = keeper ? keeper.y : poolY;
+
+  if (h.phase === 'in') {
+    h.x -= 3.4 * dt;
+    if (h.x <= h.stopX) { h.x = h.stopX; h.phase = 'open'; h.t = 0; }
+  } else if (h.phase === 'open') {
+    // Four bearers step out and walk toward the keeper
+    h.by = ky + 8;
+    const startX = h.x - 160;
+    const endX = kx + 20;
+    const k = Math.min(1, h.t / 115);
+    for (let i = 0; i < 4; i++) h.bx[i] = startX + (endX + i * 38 - startX) * k;
+    if (h.t > 115) {
+      h.phase = 'coffin';
+      h.t = 0;
+      h.coffinX = endX + 58;
+      h.coffinY = ky - 60;
+    }
+  } else if (h.phase === 'coffin') {
+    // The coffin is lowered into place beside him
+    const k = Math.min(1, h.t / 55);
+    h.coffinY = (ky - 60) + (56 * k);
+    if (h.t > 55) { h.phase = 'lift'; h.t = 0; }
+  } else if (h.phase === 'lift') {
+    // Two of them lift him into the coffin
+    if (keeper) {
+      keeper.x += (h.coffinX - keeper.x) * 0.06;
+      keeper.y += ((h.coffinY - 8) - keeper.y) * 0.06;
+      keeper.stolen = false;
+      keeper.pose = 'down';
+      keeper.shake = 0;
+    }
+    h.bx[0] = h.coffinX - 54;
+    h.bx[1] = h.coffinX + 54;
+    h.bx[2] = h.coffinX - 86;
+    h.bx[3] = h.coffinX + 86;
+    if (h.t > 55) { h.phase = 'carry'; h.t = 0; }
+  } else if (h.phase === 'carry') {
+    // They carry the coffin — him in it — back to the hearse
+    const tx = h.x - 66, ty = h.y - 30;
+    h.coffinX += (tx - h.coffinX) * 0.05;
+    h.coffinY += (ty - h.coffinY) * 0.05;
+    if (keeper) {
+      keeper.x = h.coffinX;
+      keeper.y = h.coffinY - 8;
+      keeper.stolen = false;
+      keeper.shake = 0;
+    }
+    for (let i = 0; i < 4; i++) h.bx[i] = h.coffinX + (i - 1.5) * 38;
+    if (h.t > 95) {
+      // He is in the hearse. Bruno puts the gun down.
+      h.phase = 'out';
+      h.t = 0;
+      if (keeper) keeper.stolen = true;
+      keeperGone = true;
+      rifle.on = false;
+      rifle.flash = 0;
+      ohWellTimer = 210;
+      fastMode = true;
+      fastStart = performance.now();
+      fastBaseScore = score;
+      fastBaseAttempts = attempts;
+      fastWait = 0;
+      chaosMode = false;
+      resetShot();           // back to a clean "aim" state so it can auto-play
+      hideAllInstr();        // he plays on his own now
+      tone(180, 0.3, 'triangle', 0.08, 140);
+    }
+  } else if (h.phase === 'out') {
+    h.x += 5.2 * dt;
+    if (h.x > W + 380) hearse = null;
+  }
+}
+
+// One goal every 130ms on screen; the scoreboard does 100 per millisecond.
+function fireChaosShot() {
+  const dir = rand(-0.85, 0.85);
+  let targetX, targetY;
+  if (targetMode && keeper) {
+    // Every shot goes straight at the keeper
+    targetX = keeper.x;
+    targetY = keeperDown ? keeper.y - 10 : keeper.y - 45;
+  } else {
+    targetX = shotDirToX(dir);
+    targetY = GOAL_TOP + GOAL_HEIGHT * rand(0.15, 0.75);
+  }
+  chaosBalls.push({
+    x: BALL_START_X, y: BALL_START_Y,
+    startX: BALL_START_X, startY: BALL_START_Y,
+    targetX: targetX,
+    targetY: targetY,
+    t: 0, duration: 16, rotation: 0, trail: []
+  });
+  tone(190 + Math.random() * 130, 0.06, 'square', 0.035, 95);
+}
+
+function updateChaos(dt) {
+  const now = performance.now();
+  const chaosMs = now - chaosStart;
+
+  // 100 goals per millisecond, literally. In target mode the count keeps
+  // climbing even though every shot is aimed at the keeper. It is only
+  // frozen on the "bring him back" path, where he saves everything.
+  if (targetMode || !keeperHome) {
+    score = chaosBaseScore + Math.floor(chaosMs * 100);
+    attempts = chaosBaseAttempts + Math.floor(chaosMs * 100);
+  } else {
+    score = scoreAtReturn;
+    attempts = attemptsAtReturn;
+  }
+  streak = attempts;
+
+  // The keeper sprints off the pitch, wailing the whole way
+  if (keeper && keeper.pose === 'runningOff') {
+    keeperFlee.t += dt;
+    const dx = keeper.sitX - keeper.x;
+    const dy = keeper.sitY - keeper.y;
+    const dist = Math.hypot(dx, dy);
+    if (dist < 8) {
+      // Arrived — he drops down and curls up
+      keeper.pose = 'sitting';
+      keeper.isFleeing = false;
+      keeper.x = keeper.sitX;
+      keeper.y = keeper.sitY;
+    } else {
+      const sp = 7 * dt;
+      keeper.x += dx / dist * sp;
+      keeper.y += dy / dist * sp;
+    }
+    if (Math.random() < 0.8) {
+      fleeTears.push({
+        x: keeper.x + rand(-10, 10),
+        y: keeper.y - 86,
+        vx: rand(-0.5, 0.5),
+        vy: rand(1.6, 3.6),
+        life: 1
+      });
+    }
+  } else if (keeper && keeper.pose === 'sitting') {
+    // The keeper sits on the pitch in a ball, crying
+    keeper.y = keeper.sitY + Math.sin(now / 250) * 2.5;   // gentle sob
+    if (Math.random() < 0.5) {
+      fleeTears.push({
+        x: keeper.x + rand(-9, 9),
+        y: keeper.y - 48,
+        vx: rand(-0.3, 0.3),
+        vy: rand(1.2, 2.8),
+        life: 1
+      });
+    }
+  } else if (keeper && keeper.pose === 'returning') {
+    // He gets up and trudges back to his goal
+    keeper.returnT += dt;
+    const t = Math.min(1, keeper.returnT / 75);
+    const e = t * (2 - t);                       // ease-out
+    keeper.x = lerp(keeper.returnFromX, KEEPER_X, e);
+    keeper.y = lerp(keeper.returnFromY, KEEPER_Y, e) - Math.abs(Math.sin(t * 24)) * 5;
+    keeper.isCrying = t < 0.7;
+    if (t >= 1) {
+      keeper.pose = 'inGoal';
+      keeper.isCrying = false;
+      keeper.x = KEEPER_X;
+      keeper.y = KEEPER_Y;
+      keeperHome = true;
+      tone(520, 0.2, 'triangle', 0.06, 900);
+      if (keeperReturnMode === 'targeted') {
+        keeper.targeted = true;   // he is the target from now on
+      } else {
+        endChaosMode();
+      }
+    }
+  }
+
+  // The pool keeps spreading for as long as Bruno keeps shooting at him.
+  // (The AR15 takes over with its own much bigger pool.)
+  if (targetMode && keeperDown && !rifle.on) {
+    bloodPool = Math.min(78, bloodPool + 0.4 * dt);
+  }
+
+  // The phone options
+  updateAmbulance(dt);
+  updateRifle(dt);
+  updateHearse(dt);
+
+  // He stays down where he fell — just a small shudder, never a flight
+  if (keeper && keeper.shake > 0) keeper.shake -= dt;
+  if (keeper && keeper.whiteFlash > 0) keeper.whiteFlash--;
+  for (let i = splashes.length - 1; i >= 0; i--) {
+    splashes[i].t += dt;
+    if (splashes[i].t > 22) splashes.splice(i, 1);
+  }
+  if (hitFlash > 0) hitFlash -= dt;
+  for (let i = fleeTears.length - 1; i >= 0; i--) {
+    const tr = fleeTears[i];
+    tr.x += tr.vx * dt;
+    tr.y += tr.vy * dt;
+    tr.life -= 0.022 * dt;
+    if (tr.life <= 0 || tr.y > H) fleeTears.splice(i, 1);
+  }
+
+  // Bruno never stops shooting
+  if (now - lastChaosShot > 130) {
+    lastChaosShot = now;
+    fireChaosShot();
+  }
+  for (let i = chaosBalls.length - 1; i >= 0; i--) {
+    const b = chaosBalls[i];
+    b.t += dt;
+    const t = b.t / b.duration;
+    if (t >= 1) {
+      if (targetMode) {
+        // It hit the keeper. He goes down and the pool starts to form.
+        if (!keeperDown) {
+          keeperDown = true;
+          keeper.pose = 'down';
+          keeper.x = KEEPER_X;
+          keeper.y = 340;
+          keeper.isCrying = false;
+          poolX = keeper.x;
+          poolY = keeper.y;
+        }
+        // In the normal sequence each hit adds to the pool. With the AR15 the
+        // pool grows on its own timer instead, so don't double up.
+        if (!rifle.on) bloodPool = Math.min(78, bloodPool + 8);
+        splashes.push({ x: b.targetX, y: b.targetY, t: 0 });
+        hitFlash = 7;
+        tone(110, 0.14, 'square', 0.1, 42);
+      } else if (keeperHome) {
+        // He's back — he saves it. No goal, no confetti, score unchanged.
+        savePops.push({ x: b.targetX, y: b.targetY, t: 0 });
+      } else {
+        spawnConfetti(b.targetX, b.targetY);
+      }
+      chaosBalls.splice(i, 1);
+      continue;
+    }
+    b.x = lerp(b.startX, b.targetX, t);
+    b.y = lerp(b.startY, b.targetY, t) - Math.sin(t * Math.PI) * 200;
+    b.rotation += 0.4 * dt;
+    b.trail.push({ x: b.x, y: b.y });
+    if (b.trail.length > 8) b.trail.shift();
+  }
+
+  // click feedback rings
+  for (let i = clickPings.length - 1; i >= 0; i--) {
+    clickPings[i].t += dt;
+    if (clickPings[i].t > 28) clickPings.splice(i, 1);
+  }
+
+  // SAVED! popups
+  for (let i = savePops.length - 1; i >= 0; i--) {
+    savePops[i].t += dt;
+    if (savePops[i].t > 45) savePops.splice(i, 1);
+  }
+}
+
+function resetShot() {
+  ball = null;
+  particles = [];
+  // Create a default keeper (standing in center) so it's visible during aim
+  // — unless he has been carted away in the hearse.
+  if (!keeperGone) {
+    keeper = {
+      x: KEEPER_X,
+      y: KEEPER_Y,
+      isDiving: false,
+      diveAngle: 0,
+      diveProgress: 0,
+      diveStartX: KEEPER_X,
+      diveStartY: KEEPER_Y,
+      saveZone: null
+    };
+  }
+  shotDir = 0;
+  shotDirTarget = 1;
+  state = 'aim';
+}
+
+function handleClick(e) {
+  const rect = canvas.getBoundingClientRect();
+  const px = (e.clientX - rect.left) * (canvas.width / rect.width);
+  const py = (e.clientY - rect.top) * (canvas.height / rect.height);
+
+  // The phone on the grass next to Bruno — tap it and it fills the screen
+  if (chaosMode && phoneUnlocked && !phoneOpen) {
+    const pdx = px - PHONE_X, pdy = py - PHONE_Y;
+    if (Math.abs(pdx) < 50 && Math.abs(pdy) < 58) {
+      openPhone();
+      return;
+    }
+  }
+
+  // The crying emoji beside the keeper — clicking IT is a very different
+  // outcome to clicking the keeper himself.
+  if (keeper && keeper.pose === 'sitting') {
+    const ex = keeper.x + 92, ey = keeper.y - 40;
+    if (Math.abs(px - ex) < 27 && Math.abs(py - ey) < 29) {
+      callKeeperTargeted();
+      return;
+    }
+    const dx = px - keeper.x;
+    const dy = py - (keeper.y - 26);
+    if (Math.abs(dx) < 58 && Math.abs(dy) < 60) {
+      callKeeperBack();
+      return;
+    }
+  }
+
+  // The "8" on Bruno's shirt gets first refusal on every click.
+  if (isClickOnEight(px, py)) {
+    registerShirtClick();
+    return;
+  }
+  if (chaosMode) return;
+  if (state === 'title') return;
+  if (state === 'aim') {
+    takeShot();
+  } else if (state === 'result') {
+    resetShot();
+  }
+}
+
+function takeShot() {
+  attempts++;
+  const dir = shotDir;  // -1..+1
+  ball = {
+    x: BALL_START_X,
+    y: BALL_START_Y,
+    startX: BALL_START_X,
+    startY: BALL_START_Y,
+    dir: dir,
+    rotation: 0,
+    trail: [],
+    outcome: null,
+    keeperDir: null
+  };
+
+  // Decide keeper dive direction (random: -1 = left, 0 = center, +1 = right)
+  // But use zones so the keeper can be in the same zone as the ball
+  const zones = [-1, -0.5, 0, 0.5, 1];
+  const keeperDir = zones[randInt(0, zones.length - 1)];
+  ball.keeperDir = keeperDir;
+
+  // Set up keeper (not if he is in the hearse)
+  if (!keeperGone) {
+    keeper = {
+      x: KEEPER_X,
+      y: KEEPER_Y,
+      isDiving: false,
+      diveAngle: 0,
+      diveProgress: 0,
+      diveStartX: KEEPER_X,
+      diveStartY: KEEPER_Y,
+      saveZone: null  // set when ball reaches goal
+    };
+  }
+
+  // Compute target — where the ball will end up
+  // If the dir is outside the goal, the ball misses completely
+  const targetX = shotDirToX(dir);
+  const inGoal = (targetX >= GOAL_LEFT + BALL_R && targetX <= GOAL_RIGHT - BALL_R);
+  ball.targetX = targetX;
+  ball.targetY = GOAL_TOP + (GOAL_HEIGHT * (0.3 + Math.random() * 0.4));  // somewhere in upper-middle of goal
+  ball.inGoal = inGoal;
+  ball.vx = 0;
+  ball.vy = 0;
+  ball.t = 0;
+  ball.duration = 35;  // frames to reach target
+  ball.startDuration = 35;
+  state = 'shooting';
+}
+
+function update(dt) {
+  if (ohWellTimer > 0) ohWellTimer--;
+  if (chaosMode) {
+    updateChaos(dt);
+  } else if (fastMode) {
+    updateFast(dt);
+  } else if (state === 'aim') {
+    // Bounce the direction meter
+    shotDir += shotDirTarget * SHOT_SPEED * dt;
+    if (shotDir >= SHOT_MAX) { shotDir = SHOT_MAX; shotDirTarget = -1; }
+    if (shotDir <= SHOT_MIN) { shotDir = SHOT_MIN; shotDirTarget = 1; }
+  } else if (state === 'shooting' && ball) {
+    ball.t += dt;
+    const t = ball.t / ball.duration;
+    if (t >= 1) {
+      // Shot complete — determine outcome
+      resolveShot();
+      return;
+    }
+    // Animate ball from start to target (with arc)
+    const easeT = t;
+    ball.x = lerp(ball.startX, ball.targetX, easeT);
+    // Arc: ball goes UP then comes DOWN at target
+    const arc = Math.sin(easeT * Math.PI) * 200;
+    ball.y = lerp(ball.startY, ball.targetY, easeT) - arc;
+    ball.rotation += 0.4 * dt;
+    // Trail
+    ball.trail.push({ x: ball.x, y: ball.y });
+    if (ball.trail.length > 8) ball.trail.shift();
+
+    // Animate keeper
+    if (keeper && t > 0.25) {
+      // Keeper starts diving once ball is well on its way
+      if (!keeper.isDiving) {
+        keeper.isDiving = true;
+        keeper.diveAngle = ball.keeperDir;
+        // Also "launch" the keeper up slightly
+        keeper.diveStartX = keeper.x;
+        keeper.diveStartY = keeper.y;
+      }
+      // Compute dive progress (0..1, with smooth ease-out)
+      const diveT = Math.min(1, (t - 0.25) / 0.5);
+      const easedT = 1 - Math.pow(1 - diveT, 2.5);  // ease-out quad
+      // Move keeper in the dive direction (arc motion)
+      const diveTargetX = KEEPER_X + ball.keeperDir * 90;
+      // Arc: keeper goes UP first then DOWN
+      const arc = Math.sin(easedT * Math.PI) * 30;
+      keeper.x = lerp(keeper.diveStartX, diveTargetX, easedT);
+      keeper.y = keeper.diveStartY - arc;
+      keeper.diveProgress = easedT;
+    }
+  }
+  updateParticles();
+}
+
+// After the hearse: Bruno keeps scoring penalties, 100 times faster.
+// The game auto-plays itself in a blur and the count races upward.
+function updateFast(dt) {
+  const fastMs = performance.now() - fastStart;
+  score = fastBaseScore + Math.floor(fastMs * FAST_GOALS_PER_MS);
+  attempts = fastBaseAttempts + Math.floor(fastMs * FAST_GOALS_PER_MS);
+  streak = attempts;
+
+  fastWait += dt;
+  if (state === 'aim') {
+    // Auto-fire — always on target
+    if (fastWait >= 2) {
+      fastWait = 0;
+      shotDir = rand(-0.5, 0.5);
+      takeShot();
+      // A streak for every shot so the rapid fire is visible
+      if (ball) {
+        fastStreaks.push({
+          x1: ball.startX, y1: ball.startY,
+          x2: ball.targetX, y2: ball.targetY, t: 0
+        });
+      }
+    }
+  } else if (state === 'shooting' && ball) {
+    ball.t += dt * 12;
+    const t = ball.t / ball.duration;
+    if (t >= 1) {
+      resolveShot();
+      return;
+    }
+    ball.x = lerp(ball.startX, ball.targetX, t);
+    const arc = Math.sin(t * Math.PI) * 200;
+    ball.y = lerp(ball.startY, ball.targetY, t) - arc;
+    ball.rotation += 0.4 * dt * 12;
+    ball.trail.push({ x: ball.x, y: ball.y });
+    if (ball.trail.length > 8) ball.trail.shift();
+  } else if (state === 'result') {
+    if (fastWait >= 1) {
+      fastWait = 0;
+      resetShot();
+    }
+  }
+  for (let i = fastStreaks.length - 1; i >= 0; i--) {
+    fastStreaks[i].t += dt;
+    if (fastStreaks[i].t > 10) fastStreaks.splice(i, 1);
+  }
+  updateParticles();
+}
+
+// The streaks of every shot fired in fast mode
+function drawFastStreaks() {
+  for (const s of fastStreaks) {
+    const a = Math.max(0, 1 - s.t / 10) * 0.75;
+    ctx.strokeStyle = `rgba(255,255,255,${a})`;
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(s.x1, s.y1);
+    ctx.lineTo(s.x2, s.y2);
+    ctx.stroke();
+  }
+}
+
+function resolveShot() {
+  if (!ball) return;
+  if (!ball.inGoal) {
+    // Missed the goal completely (clicked when slider was outside)
+    ball.outcome = 'miss';
+    state = 'result';
+    streak = 0;
+    return;
+  }
+  // He is in the hearse — there is nobody left to save anything
+  if (keeperGone) {
+    ball.outcome = 'goal';
+    score++;
+    streak++;
+    if (streak > bestStreak) bestStreak = streak;
+    spawnConfetti(ball.x, ball.y);
+    state = 'result';
+    return;
+  }
+  // In goal — check keeper
+  const ballZone = dirToZone(ball.dir);
+  const keeperZone = dirToZone(ball.keeperDir);
+  // Same general direction?
+  const sameDirection = (Math.sign(ball.dir) === Math.sign(ball.keeperDir)) ||
+                        (Math.abs(ball.dir) < 0.1 && Math.abs(ball.keeperDir) < 0.1);
+  if (sameDirection) {
+    // 50/50 chance of save
+    if (Math.random() < 0.5) {
+      ball.outcome = 'save';
+      streak = 0;
+    } else {
+      ball.outcome = 'goal';
+      score++;
+      streak++;
+      if (streak > bestStreak) bestStreak = streak;
+      spawnConfetti(ball.x, ball.y);
+    }
+  } else {
+    // Keeper guessed wrong — GOAL
+    ball.outcome = 'goal';
+    score++;
+    streak++;
+    if (streak > bestStreak) bestStreak = streak;
+    spawnConfetti(ball.x, ball.y);
+  }
+  state = 'result';
+}
+
+// ============================================================
+//   Render
+// ============================================================
+function render() {
+  drawStadium();
+  drawGoal();
+  // The pool of red is painted BEFORE the keeper so he is seen lying IN it,
+  // and it stays large and vivid enough to remain clearly visible while
+  // Bruno is still shooting at him.
+  drawBloodPool();
+  drawStretcher();
+  drawKeeper();
+  drawBruno();
+  drawPhone();
+  drawBall();
+  drawChaosBalls();
+  drawFleeTears();
+  drawAmbulance();
+  drawHearse();
+  drawPallbearers();
+  drawBloodTrails();
+  drawTracers();
+  drawFastStreaks();
+  drawMeter();
+  drawScore();
+  drawResult();
+  drawParticles();
+  drawSavePops();
+  drawSplashes();
+  drawHitFlash();
+  drawChaosOverlay();
+  drawOhWell();
+}
+
+// ============================================================
+//   Main loop
+// ============================================================
+let lastFrame = performance.now();
+function loop(now) {
+  const dt = Math.min((now - lastFrame) / 16.67, 3);
+  lastFrame = now;
+  update(dt);
+  render();
+  requestAnimationFrame(loop);
+}
+
+// ============================================================
+//   Input
+// ============================================================
+document.getElementById('play-btn').addEventListener('click', () => {
+  document.getElementById('title-screen').style.display = 'none';
+  document.getElementById('back-btn').style.display = 'block';
+  resetShot();
+  showInstr('aim');
+});
+document.getElementById('back-btn').addEventListener('click', (e) => {
+  e.stopPropagation();
+  document.getElementById('title-screen').style.display = 'flex';
+  document.getElementById('back-btn').style.display = 'none';
+  hideAllInstr();
+  state = 'title';
+  ball = null; particles = []; keeper = null;
+  // Reset the 8 secret so it can be discovered again
+  chaosMode = false;
+  shirtClicks = 0;
+  chaosBalls = [];
+  fleeTears = [];
+  clickPings = [];
+  savePops = [];
+  keeperFlee = null;
+  keeperHome = false;
+  scoreAtReturn = 0;
+  attemptsAtReturn = 0;
+  bloodPool = 0;
+  keeperDown = false;
+  targetMode = false;
+  keeperReturnMode = 'normal';
+  splashes = [];
+  hitFlash = 0;
+  phoneOpen = false;
+  document.getElementById('phone-screen').classList.add('hidden');
+  ambulance = null;
+  stretcher = null;
+  bloodTrails = [];
+  rifle.on = false;
+  rifle.flash = 0;
+  rifle.shots = 0;
+  rifle.t = 0;
+  tracers = [];
+  poolX = KEEPER_X;
+  poolY = 340;
+  hearse = null;
+  fastMode = false;
+  fastWait = 0;
+  keeperGone = false;
+  ohWellTimer = 0;
+  riflePoolRate = 0;
+  phoneUnlocked = false;
+  fastStreaks = [];
+});
+canvas.addEventListener('click', handleClick);
+
+// ---------- The phone ----------
+document.getElementById('opt-call').addEventListener('click', (e) => {
+  e.stopPropagation();
+  startAmbulance();
+});
+document.getElementById('opt-rifle').addEventListener('click', (e) => {
+  e.stopPropagation();
+  startRifle();
+});
+document.getElementById('phone-close').addEventListener('click', (e) => {
+  e.stopPropagation();
+  closePhone();
+});
+
+function showInstr(which) {
+  hideAllInstr();
+  if (which === 'aim')    document.getElementById('instr-vertical').style.display = 'block';
+  if (which === 'result') document.getElementById('instr-result').style.display = 'block';
+}
+function hideAllInstr() {
+  document.getElementById('instr-vertical').style.display = 'none';
+  document.getElementById('instr-result').style.display = 'none';
+}
+
+// Start
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>
